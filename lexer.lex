@@ -57,6 +57,9 @@ GTE ">="
 
 DIGIT [0-9]
 NUMBER {DIGIT}+
+IDENTIFIER [a-zA-Z](_[a-zA-Z0-9]|[a-zA-Z0-9])*
+INVALID_IDEN_START [_0-9](_[a-zA-Z0-9]|[a-zA-Z0-9])*
+INVALID_IDEN_END [a-zA-Z](_[a-zA-Z0-9]|[a-zA-Z0-9])*_
 
 /* Other Special Symbols */
 SEMICOLON ";"
@@ -115,9 +118,14 @@ NEWLINE \n
 {GTE} printf("GTE\n");
 
 {NUMBER} printf("NUMBER "); ECHO; printf("\n");
+{IDENTIFIER} printf("IDENT "); ECHO; printf("\n");
+{INVALID_IDEN_START}  printf("Error at line %d, column %d: identifier \"", yylineno, col); ECHO; printf("\" must begin with a letter\n"); exit(1);
+{INVALID_IDEN_END}  printf("Error at line %d, column %d: identifier \"", yylineno, col); ECHO; printf("\" cannot end with an underscore\n"); exit(1);
+
 
 {SEMICOLON} printf("SEMICOLON\n");
 {COLON} printf("COLON\n");
+{COMMA} printf("COMMA\n");
 {QUESTION} printf("QUESTION\n");
 {L_BRACKET} printf("L_BRACKET\n");
 {R_BRACKET} printf("R_BRACKET\n");
@@ -125,7 +133,7 @@ NEWLINE \n
 {R_PAREN} printf("R_PAREN\n");
 {ASSIGN} printf("ASSIGN\n");
 
-{COMMENT} printf("COMMENT\n");
+{COMMENT}
 {WHITESPACE}
 {NEWLINE} col = 0;
 
@@ -134,15 +142,6 @@ NEWLINE \n
 
 main(int argc, char * argv[])
 {
-  if(argc != 2)
-  {
-    printf("Incorrect number of args\n");
-    return 1;
-  }
-  else
-  {
-    yyin = fopen(argv[1], "r");
-  }
-
+  // Invoke the lexer as follows: 'cat primes.min | lexer'
   yylex();
 }

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -e ../lexer ]; then
+
+  ../lexer dowhiletest.min > dowhiletest.output
+  diff dowhiletest.output dowhiletest.tokens > diff.output
+  cat diff.output
+
+  diffoutput=`cat diff.output`
+  if [[ "$diffoutput" == "" ]]; then
+    echo "PASSED"
+
+  else
+    echo "FAILED"
+
+  fi
+
+  rm dowhiletest.output diff.output
+
+else
+  echo "Must compile lexer before running tests"
+
+fi

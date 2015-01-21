@@ -1,29 +1,5 @@
-program
+ program test;
+ happy_hippo32 : integer;
+2n : integer;
 beginprogram
-
-program
-2+2
-(2200) + (21) := 4
-
-if 22 then
-55
-array 103
-
-beginloop
-53 := (2+2)
-endloop
-
-if true
-2+2
-5 % 1
-
-if 2 > 1 then
-read 5
-else
-read 4^
-
-##AAAMARTINGS FAT##
-hey##
-2 - 2
-^
 endprogram

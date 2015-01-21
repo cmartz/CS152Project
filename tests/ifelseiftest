@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -e ../lexer ]; then
+
+  ../lexer ifelseiftest.min > ifelseiftest.output
+  diff ifelseiftest.output ifelseiftest.tokens > diff.output
+  cat diff.output
+
+  diffoutput=`cat diff.output`
+  if [[ "$diffoutput" == "" ]]; then
+    echo "PASSED"
+
+  else
+    echo "FAILED"
+
+  fi
+
+  rm ifelseiftest.output diff.output
+
+else
+  echo "Must compile lexer before running tests"
+
+fi
