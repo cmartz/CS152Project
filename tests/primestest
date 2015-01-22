@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -e ../lexer ]; then
+
+   cat primestest.min | ../lexer primes.min > primes.output
+   diff primes.output primestest.tokens > diff.output
+   cat diff.output
+
+   diffoutput=`cat diff.output`
+   if [[ "$diffoutput" == "" ]]; then
+      echo "PASSED"
+
+   else
+      echo "FAILED"
+
+   fi
+
+   rm primes.output diff.output
+
+else
+   echo "Must compile lexer before running tests"
+
+fi

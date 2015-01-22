@@ -2,7 +2,7 @@
 
 if [ -e ../lexer ]; then
 
-  ../lexer dowhiletest.min > dowhiletest.output
+  cat dowhiletest.min | ../lexer dowhiletest.min > dowhiletest.output
   diff dowhiletest.output dowhiletest.tokens > diff.output
   cat diff.output
 
