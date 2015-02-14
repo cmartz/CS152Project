@@ -1,6 +1,9 @@
 /* main.cc */
+#include <iostream>
+#include <stdio.h>
+#include <string>
 
-#include "heading.h"
+using namespace std;
 
 // prototype of bison-generated parser function
 int yyparse();
@@ -12,9 +15,8 @@ int main(int argc, char **argv)
     cerr << argv[0] << ": File " << argv[1] << " cannot be opened.\n";
     exit( 1 );
   }
-  
+
   yyparse();
 
   return 0;
 }
-
