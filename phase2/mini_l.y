@@ -94,7 +94,6 @@ Ident_seq: COMMA IDENT Ident_seq
 
 Stmt: Var ASSIGN Expr
       | Var ASSIGN Bool_exp QUESTION Expr COLON Expr
-      | IF Bool_exp THEN Stmt SEMICOLON
       | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail
       | WHILE Bool_exp BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP
       | BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP WHILE Bool_exp
@@ -118,10 +117,14 @@ Relation_and_exp: Relation_exp
                   | Relation_exp AND Relation_exp
                   ;
 
-Relation_exp: Not_prime Expr Comp Expr
-              | Not_prime FALSE
-              | Not_prime TRUE
-              | Not_prime L_PAREN Bool_exp R_PAREN
+Relation_exp: NOT Expr Comp Expr
+              | NOT FALSE
+              | NOT TRUE
+              | NOT L_PAREN Bool_exp R_PAREN
+              | Expr Comp Expr
+              | FALSE
+              | TRUE
+              | L_PAREN Bool_exp R_PAREN
               ;
 
 Var: IDENT
@@ -139,8 +142,8 @@ Not_prime: NOT
 Cond_tail: Else_if_seq
            | ENDIF
            | ELSE Stmt SEMICOLON Stmt_prime ENDIF
-           | Else_if_seq ENDIF
-           | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF
+           | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ENDIF
+           | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF
            ;
 
 Else_if_seq: ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq
@@ -172,9 +175,12 @@ Mult_expr_seq: MULT Term Mult_expr_seq
                |
                ;
 
-Term: Neg_prime Var
-      | Neg_prime NUMBER
-      | Neg_prime L_PAREN Expr R_PAREN
+Term: Var
+      | NUMBER
+      | L_PAREN Expr R_PAREN
+      | SUB Var
+      | SUB NUMBER
+      | SUB L_PAREN Expr R_PAREN
       ;
 
 Neg_prime: SUB
