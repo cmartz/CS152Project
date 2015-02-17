@@ -12,7 +12,7 @@ int yylex(void);
   string*	op_val;
 }
 
-%start	program
+%start	input
 
 %token	<int_val>	INTEGER_LITERAL
 %type	<int_val>	exp
@@ -20,8 +20,6 @@ int yylex(void);
 %left	MULT
 
 %%
-
-program: /* empty */ { cout << "Found it!\n"};
 
 input:		/* empty */
 		| exp	{ cout << "Result: " << $1 << endl; }
