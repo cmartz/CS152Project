@@ -57,4 +57,4 @@ TERM --> NEG' VAR | NEG' number | NEG' ( EXPR )
 
 NEG' --> - | e
 
-VAR --> ident | ident ( EXPR )
+VAR --> ident | ident [ EXPR ]
