@@ -6,6 +6,7 @@ using namespace std;
 #include <string>
 int yyerror(char *s);
 int yylex(void);
+extern char * yytext;
 %}
 
 %union{
@@ -15,7 +16,7 @@ int yylex(void);
 
 %start Program
 
-%token PROGRAM
+%token <string> PROGRAM
 %token BEGIN_PROGRAM
 %token END_PROGRAM
 %token <int_val> INTEGER
@@ -70,11 +71,11 @@ int yylex(void);
 %token R_BRACKET
 %token L_PAREN
 %token R_PAREN
-%left ASSIGN
+%token ASSIGN
 
 
 %%
-Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM
+Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM {printf("program -> %s\n", yytext);}
          ;
 
 Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime
@@ -85,20 +86,20 @@ Dec_prime: Dec SEMICOLON Dec_prime
       ;
 
 Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER
-      | IDENT Ident_seq COLON INTEGER { printf("Declaration $1 found!\n"); }
+      | IDENT Ident_seq COLON INTEGER
       ;
 
 Ident_seq: COMMA IDENT Ident_seq
            |
            ;
 
-Stmt: Var ASSIGN Expr
+Stmt: Var ASSIGN Expr {printf("Stmt -> %s\n", yytext);}
       | Var ASSIGN Bool_exp QUESTION Expr COLON Expr
       | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail
       | WHILE Bool_exp BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP
       | BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP WHILE Bool_exp
-      | READ Var SEMICOLON Var_prime
-      | WRITE Var SEMICOLON Var_prime
+      | READ Var Var_prime
+      | WRITE Var Var_prime
       | BREAK
       | CONTINUE
       | EXIT
@@ -128,10 +129,10 @@ Relation_exp: NOT Expr Comp Expr
               ;
 
 Var: IDENT
-     | IDENT L_PAREN Expr R_PAREN
+     | IDENT L_BRACKET Expr R_BRACKET
      ;
 
-Var_prime: Var SEMICOLON Var_prime
+Var_prime: COMMA Var Var_prime
            |
            ;
 
@@ -192,7 +193,6 @@ int yyerror(string s)
 {
   extern int yylineno;	// defined and maintained in lex.c
   extern char *yytext;	// defined and maintained in lex.c
-  //yyin = file;
   cerr << "ERROR: " << s << " at symbol \"" << yytext;
   cerr << "\" on line " << yylineno << endl;
   exit(1);
