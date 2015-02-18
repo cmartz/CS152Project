@@ -75,7 +75,7 @@ extern char * yytext;
 
 
 %%
-Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM {printf("program -> %s\n", yytext);}
+Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM 
          ;
 
 Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime
