@@ -17,14 +17,12 @@ lex.c: mini_l.lex
 	mv lex.yy.c lex.c
 
 # Parser
-bison.o: bison.c mini_l.y
-	bison -v -d --file-prefix=y mini_l.y
+bison.o: bison.c
 	$(CC) $(CFLAGS) -c bison.c -o bison.o
 
 bison.c: mini_l.y
-	bison -d -v mini_l.y
-	mv mini_l.tab.c bison.c
-
+	bison -d -v --file-prefix=y mini_l.y
+	mv y.tab.c bison.c
 
 main.o:	main.cc
 	$(CC) $(CFLAGS) -c main.cc -o main.o

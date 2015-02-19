@@ -8,25 +8,26 @@ DEC' --> DEC ; DEC' | e
 
 DEC --> ident IDENT_SEQ ; array [ number ] of integer | ident IDENT_SEQ : integer
 
-IDENT_SEQ --> ident IDENT_SEQ | e
+IDENT_SEQ --> , ident IDENT_SEQ | e
 
 STMNT --> VAR := EXPR | VAR := BOOL_EXPR ? EXPR : EXPR
-          | id BOOL_EXPR then STMNT ;
+          | if BOOL_EXPR then STMNT ;
           | while BOOL_EXPR begin_loop STMNT ; STMNT' end_loop
           | begin_loop STMNT ; STMNT' end_loop while BOOL_EXPR
-          | read VAR ; VAR'
-          | write VAR ; VAR'
+          | read VAR VAR'
+          | write VAR VAR'
           | break
           | continue
           | exit
 
-VAR' --> VAR ; VAR' | e
+VAR' --> , VAR VAR' | e
 
 BOOL_EXPR --> RELATION_AND_EXPR | RELATION_AND_EXPR or RELATION_AND_EXPR
 
 RELATION_AND_EXPR --> RELATION_EXPR | RELATION_EXPR and RELATION_EXPR
 
 RELATION_EXPR --> NOT' EXPR COMP EXPR | NOT' true | NOT' false | NOT' ( BOOL_EXPR )
+                  | EXPR COMP EXPR | true | false | ( BOOL_EXPR )
 
 NOT' --> not | e
 
@@ -35,8 +36,8 @@ STMNT --> if BOOL_EXPR then STMNT ; STMNT' COND_TAIL
 COND_TAIL --> ELSE_IF_SEQ
               | end_if
               | else STMNT ; STMNT' end_if
-              | ELSE_IF_SEQ end_if
-              | ELSE_IF_SEQ else STMNT ; STMNT' end_if
+              | else_if STMNT ; STMNT' ELSE_IF_SEQ end_if
+              | else_if STMNT ; STMNT' ELSE_IF_SEQ else STMNT ; STMNT' end_if
 
 ELSE_IF_SEQ --> else_if STMNT ; STMNT' ELSE_IF_SEQ | e
 
@@ -53,7 +54,7 @@ MULT_EXPR_SEQ -->   * TERM MULT_EXPR_SEQ
                   | % TERM MULT_EXPR_SEQ
                   | e
 
-TERM --> NEG' VAR | NEG' number | NEG' ( EXPR )
+TERM --> NEG' VAR | NEG' number | NEG' ( EXPR ) | VAR | number | ( EXPR )
 
 NEG' --> - | e
 
