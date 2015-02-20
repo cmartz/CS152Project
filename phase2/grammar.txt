@@ -11,7 +11,7 @@ DEC --> ident IDENT_SEQ ; array [ number ] of integer | ident IDENT_SEQ : intege
 IDENT_SEQ --> , ident IDENT_SEQ | e
 
 STMNT --> VAR := EXPR | VAR := BOOL_EXPR ? EXPR : EXPR
-          | if BOOL_EXPR then STMNT ;
+          | if BOOL_EXPR then STMNT ; STMNT' COND_TAIL
           | while BOOL_EXPR begin_loop STMNT ; STMNT' end_loop
           | begin_loop STMNT ; STMNT' end_loop while BOOL_EXPR
           | read VAR VAR'
@@ -30,8 +30,6 @@ RELATION_EXPR --> NOT' EXPR COMP EXPR | NOT' true | NOT' false | NOT' ( BOOL_EXP
                   | EXPR COMP EXPR | true | false | ( BOOL_EXPR )
 
 NOT' --> not | e
-
-STMNT --> if BOOL_EXPR then STMNT ; STMNT' COND_TAIL
 
 COND_TAIL --> ELSE_IF_SEQ
               | end_if
