@@ -112,13 +112,19 @@ Stmt_prime: Stmt SEMICOLON Stmt_prime {printf("Stmt_prime -> Stmt SEMICOLON Stmt
             | {printf("Stmt_prime -> e\n");}
             ;
 
-Bool_exp: Relation_and_exp {printf("Bool_exp -> Relation_and_exp\n");}
-          | Relation_and_exp OR Relation_and_exp {printf("Bool_exp -> Relation_and_exp OR Relation_and_exp\n");}
+Bool_exp: Relation_and_exp Or_seq {printf("Bool_exp -> Relation_and_exp Or_seq\n");}
           ;
 
-Relation_and_exp: Relation_exp {printf("Relation_and_exp -> Relation_exp\n");}
-                  | Relation_exp AND Relation_exp {printf("Relation_and_exp -> Relation_exp AND Relation_exp\n");}
+Or_seq: OR Relation_and_exp Or_seq {printf("Or_seq -> OR Relation_and_exp Or_seq\n");}
+          | {printf("Or_seq -> e\n");}
+          ;
+
+Relation_and_exp: Relation_exp And_seq {printf("Relation_and_exp -> Relation_exp And_seq\n");}
                   ;
+
+And_seq: AND Relation_exp And_seq {printf("And_seq -> AND Relation_exp And_seq\n");}
+         | {printf("And_seq -> e\n");}
+         ;
 
 Relation_exp: NOT Expr Comp Expr {printf("Relation_exp -> Expr Comp Expr\n");}
               | NOT FALSE {printf("Relation_exp -> NOT FALSE\n");}
