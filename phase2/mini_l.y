@@ -9,6 +9,8 @@ int yylex(void);
 extern char * yytext;
 %}
 
+%error-verbose
+
 %union{
   int		int_val;
   char* string_val;
@@ -200,4 +202,12 @@ int yyerror(string s)
 int yyerror(char *s)
 {
   return yyerror(string(s));
+}
+
+int main(int argc, char **argv)
+{
+
+  yyparse();
+
+  return 0;
 }

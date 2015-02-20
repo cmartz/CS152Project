@@ -1,6 +1,6 @@
 
 
-OBJS = bison.o lex.o main.o
+OBJS = bison.o lex.o
 CC = g++
 CFLAGS = -g -Wall -pedantic -ll
 
@@ -24,8 +24,5 @@ bison.c: mini_l.y
 	bison -d -v --file-prefix=y mini_l.y
 	mv y.tab.c bison.c
 
-main.o:	main.cc
-	$(CC) $(CFLAGS) -c main.cc -o main.o
-
 clean:
-	rm parser *.o lex.c bison.c mini_l.output mini_l.tab.h y.output y.tab.c y.tab.h
+	rm parser *.o lex.c bison.c mini_l.output mini_l.tab.h y.output y.tab.c y.tab.h lexer
