@@ -3,5 +3,5 @@ program test;
 n : integer;
 
 beginprogram	## main program
-
+    read n;
 endprogram
