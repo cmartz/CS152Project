@@ -87,8 +87,8 @@ Dec_prime: Dec SEMICOLON Dec_prime {}
       | {}
       ;
 
-Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {}
-      | IDENT Ident_seq COLON INTEGER {cout << ". " << $1 << endl;}
+Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {printf(". %s,%d\n", $1, $6);}
+      | IDENT Ident_seq COLON INTEGER {printf(". %s\n", $1);}
       ;
 
 Ident_seq: COMMA IDENT Ident_seq {}
