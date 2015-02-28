@@ -77,14 +77,14 @@ extern char * yytext;
 
 
 %%
-Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM {printf("program -> PROGRAM IDENT SEMICOLON Block END_PROGRAM\n");}
+Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM {}
          ;
 
-Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime {printf("Block -> Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime\n");}
+Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime {}
        ;
 
-Dec_prime: Dec SEMICOLON Dec_prime {printf("Dec_prime -> Dec SEMICOLON Dec_prime\n"); }
-      | {printf("Dec_prime -> e\n");}
+Dec_prime: Dec SEMICOLON Dec_prime {}
+      | {}
       ;
 
 Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {printf("Dec -> IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER\n");}

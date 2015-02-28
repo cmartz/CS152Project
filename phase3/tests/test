@@ -1,0 +1,7 @@
+program test;
+
+n : integer;
+
+beginprogram	## main program
+
+endprogram
