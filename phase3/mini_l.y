@@ -2,14 +2,21 @@
 #define YY_NO_UNPUT
 using namespace std;
 #include <iostream>
+#include <vector>
+#include <fstream>
 #include <stdio.h>
 #include <string>
+<<<<<<< HEAD
 #include <unordered_map>
 
+=======
+#include <sstream>
+>>>>>>> 6edf570a6cdd0c3f1113ff7e58214e2ffac10418
 int yyerror(char *s);
 int yylex(void);
 extern char * yytext;
 
+<<<<<<< HEAD
 enum Symtype { INT, INTARR };
 
 struct Sym
@@ -23,6 +30,19 @@ unordered_map <string, Sym> sym_table;
 void add_sym(Sym sym);
 
 
+=======
+
+struct variable
+{
+  string name;
+
+};
+
+string program_name;
+
+stringstream code;
+vector<struct variable> variables;
+>>>>>>> 6edf570a6cdd0c3f1113ff7e58214e2ffac10418
 %}
 
 %error-verbose
@@ -34,7 +54,7 @@ void add_sym(Sym sym);
 
 %start Program
 
-%token <string> PROGRAM
+%token PROGRAM
 %token BEGIN_PROGRAM
 %token END_PROGRAM
 %token <int_val> INTEGER
@@ -93,7 +113,7 @@ void add_sym(Sym sym);
 
 
 %%
-Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM {}
+Program: PROGRAM IDENT SEMICOLON {program_name = $2;}Block END_PROGRAM {}
          ;
 
 Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime {}
@@ -108,19 +128,19 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
                                                                             sym.name = $1;
                                                                             sym.type = INTARR;
                                                                             add_sym(sym);
-                                                                            cout << ". " << $1 << "," << $6 << endl;
+                                                                            code << ".[] " << $1 << ", " << $6 << endl;
                                                                        }
       | IDENT Ident_seq COLON INTEGER {
                                         Sym sym;
                                         sym.name = $1;
                                         sym.type = INT;
                                         add_sym(sym);
-                                        cout << ". " << $1 << endl;
+                                        code << ". " << $1 << endl;
                                       }
-      ;
+    ;
 
-Ident_seq: COMMA IDENT Ident_seq {}
-           | {}
+Ident_seq: COMMA IDENT {code << ". " << $2 << endl;}Ident_seq
+           |
            ;
 
 Stmt: Var ASSIGN Expr {}
@@ -262,6 +282,10 @@ int main(int argc, char **argv)
 {
 
   yyparse();
+
+  ofstream file(program_name.c_str());
+  file << code.str();
+  cout << code.str();
 
   return 0;
 }

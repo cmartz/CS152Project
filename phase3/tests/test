@@ -1,7 +1,9 @@
-program test;
+program my_program;
 
 n : integer;
-
+a : array[1000] of integer;	## prime candidates array
+i, j : integer;
+x, sqrt_n : integer;
 beginprogram	## main program
     read n;
 endprogram
