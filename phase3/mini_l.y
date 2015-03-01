@@ -4,9 +4,25 @@ using namespace std;
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <unordered_map>
+
 int yyerror(char *s);
 int yylex(void);
 extern char * yytext;
+
+enum Symtype { INT, INTARR };
+
+struct Sym
+{
+    string name;
+    Symtype type;
+};
+
+unordered_map <string, Sym> sym_table;
+
+void add_sym(Sym sym);
+
+
 %}
 
 %error-verbose
@@ -87,8 +103,20 @@ Dec_prime: Dec SEMICOLON Dec_prime {}
       | {}
       ;
 
-Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {printf(". %s,%d\n", $1, $6);}
-      | IDENT Ident_seq COLON INTEGER {printf(". %s\n", $1);}
+Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
+                                                                            Sym sym;
+                                                                            sym.name = $1;
+                                                                            sym.type = INTARR;
+                                                                            add_sym(sym);
+                                                                            cout << ". " << $1 << "," << $6 << endl;
+                                                                       }
+      | IDENT Ident_seq COLON INTEGER {
+                                        Sym sym;
+                                        sym.name = $1;
+                                        sym.type = INT;
+                                        add_sym(sym);
+                                        cout << ". " << $1 << endl;
+                                      }
       ;
 
 Ident_seq: COMMA IDENT Ident_seq {}
@@ -197,6 +225,7 @@ Neg_prime: SUB {}
            ;
 
 %%
+
 int yyerror(string s)
 {
   extern int yylineno;	// defined and maintained in lex.c
@@ -205,9 +234,28 @@ int yyerror(string s)
   cerr << "\" on line " << yylineno << endl;
   exit(1);
 }
+
 int yyerror(char *s)
 {
   return yyerror(string(s));
+}
+
+void add_sym(Sym sym)
+{    
+    if(sym_table.find(sym.name) == sym_table.end())
+    {
+        //symbol does not exist. Insert it.
+        sym_table[sym.name] = sym;
+        
+    }
+    else
+    {
+        //symbol already exists. This is an error.
+        extern int yylineno;
+        extern char *yytext;
+        string errormsg = "redeclaration of symbol " + sym.name;
+        yyerror(errormsg);
+    }
 }
 
 int main(int argc, char **argv)
