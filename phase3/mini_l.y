@@ -263,8 +263,6 @@ void add_sym(Sym sym)
     else
     {
         //symbol already exists. This is an error.
-        extern int yylineno;
-        extern char *yytext;
         string errormsg = "redeclaration of symbol " + sym.name;
         yyerror(errormsg);
     }
