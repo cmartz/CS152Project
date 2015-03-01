@@ -2,11 +2,26 @@
 #define YY_NO_UNPUT
 using namespace std;
 #include <iostream>
+#include <vector>
+#include <fstream>
 #include <stdio.h>
 #include <string>
+#include <sstream>
 int yyerror(char *s);
 int yylex(void);
 extern char * yytext;
+
+
+struct variable
+{
+  string name;
+
+};
+
+string program_name;
+
+stringstream code;
+vector<struct variable> variables;
 %}
 
 %error-verbose
@@ -18,7 +33,7 @@ extern char * yytext;
 
 %start Program
 
-%token <string> PROGRAM
+%token PROGRAM
 %token BEGIN_PROGRAM
 %token END_PROGRAM
 %token <int_val> INTEGER
@@ -77,7 +92,7 @@ extern char * yytext;
 
 
 %%
-Program: PROGRAM IDENT SEMICOLON Block END_PROGRAM {}
+Program: PROGRAM IDENT SEMICOLON {program_name = $2;}Block END_PROGRAM {}
          ;
 
 Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime {}
@@ -87,12 +102,12 @@ Dec_prime: Dec SEMICOLON Dec_prime {}
       | {}
       ;
 
-Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {}
-      | IDENT Ident_seq COLON INTEGER {cout << ". " << $1 << endl;}
+Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {code << ".[] " << $1 << ", " << $6 << endl; }
+      | IDENT Ident_seq COLON INTEGER {code << ". " << $1 << endl;}
       ;
 
-Ident_seq: COMMA IDENT Ident_seq {}
-           | {}
+Ident_seq: COMMA IDENT {code << ". " << $2 << endl;}Ident_seq
+           |
            ;
 
 Stmt: Var ASSIGN Expr {}
@@ -214,6 +229,10 @@ int main(int argc, char **argv)
 {
 
   yyparse();
+
+  ofstream file(program_name.c_str());
+  file << code.str();
+  cout << code.str();
 
   return 0;
 }
