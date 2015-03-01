@@ -6,17 +6,13 @@ using namespace std;
 #include <fstream>
 #include <stdio.h>
 #include <string>
-<<<<<<< HEAD
+#include <sstream>
 #include <unordered_map>
 
-=======
-#include <sstream>
->>>>>>> 6edf570a6cdd0c3f1113ff7e58214e2ffac10418
 int yyerror(char *s);
 int yylex(void);
 extern char * yytext;
 
-<<<<<<< HEAD
 enum Symtype { INT, INTARR };
 
 struct Sym
@@ -29,9 +25,6 @@ unordered_map <string, Sym> sym_table;
 
 void add_sym(Sym sym);
 
-
-=======
-
 struct variable
 {
   string name;
@@ -42,7 +35,6 @@ string program_name;
 
 stringstream code;
 vector<struct variable> variables;
->>>>>>> 6edf570a6cdd0c3f1113ff7e58214e2ffac10418
 %}
 
 %error-verbose
