@@ -10,35 +10,26 @@ using namespace std;
 #include <unordered_map>
 
 int yyerror(char *s);
+int yyerror(string s);
 int yylex(void);
 extern char * yytext;
 
 enum Symtype { INT, INTARR };
-
 struct Sym
 {
+    int val;
     string name;
     Symtype type;
 };
 
 unordered_map <string, Sym> sym_table;
-
 void add_sym(Sym sym);
 
-struct variable
-{
-  string name;
-
-};
-
 string program_name;
-
 stringstream code;
-vector<struct variable> variables;
 %}
 
 %error-verbose
-
 %union{
   int		int_val;
   char* string_val;
@@ -103,6 +94,9 @@ vector<struct variable> variables;
 %token R_PAREN
 %token ASSIGN
 
+%type<string_val> Var
+%type<int_val> Expr
+%type<int_val> Term
 
 %%
 Program: PROGRAM IDENT SEMICOLON {program_name = $2;}Block END_PROGRAM {}
@@ -131,11 +125,42 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
                                       }
     ;
 
-Ident_seq: COMMA IDENT {code << ". " << $2 << endl;}Ident_seq
+Ident_seq: COMMA IDENT {
+  Sym sym;
+  sym.name = $2;
+  sym.type = INT;
+  add_sym(sym);
+  code << ". " << $2 << endl;
+} Ident_seq
            |
            ;
 
-Stmt: Var ASSIGN Expr {}
+Stmt: Var ASSIGN Expr {
+  if(sym_table.find($1) == sym_table.end())
+  {
+    string errormsg = "Undefined variable";
+    errormsg = errormsg + $1;
+    yyerror(errormsg);
+  }
+  else
+  {
+    sym_table.find($1)->second.val = $3;
+    code << "= " << $1 << ", " << $3 << endl;
+  }
+}
+      | Var ASSIGN Var {
+  if(sym_table.find($1) == sym_table.end())
+  {
+    string errormsg = "Undefined variable ";
+    errormsg = errormsg + $1;
+    yyerror(errormsg);
+  }
+  else
+  {
+    sym_table.find($1)->second.val = sym_table.find($3)->second.val;
+    code << "= " << $1 << ", " << $3 << endl;
+  }
+}
       | Var ASSIGN Bool_exp QUESTION Expr COLON Expr {}
       | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {}
       | WHILE Bool_exp BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP {}
@@ -176,8 +201,11 @@ Relation_exp: NOT Expr Comp Expr {}
               | L_PAREN Bool_exp R_PAREN {}
               ;
 
-Var: IDENT {}
-     | IDENT L_BRACKET Expr R_BRACKET {}
+Var: IDENT {
+  $$ = $1;
+}
+     | IDENT L_BRACKET Expr R_BRACKET {
+}
      ;
 
 Var_prime: COMMA Var Var_prime {}
@@ -207,29 +235,41 @@ Comp: EQ {}
       | GTE {}
       ;
 
-Expr: Mult_expr Expr_seq {}
-      ;
+Expr: Term ADD Expr {
+  $$ = $1 + $3;
+  code << "+ " << $$ << ", " << $1 << ", " << $3 << endl;
+}
+      | Term SUB Expr {
+  $$ = $1 - $3;
+}
+      | Term MULT Expr {
+  $$ = $1 * $3;
+}
+      | Term DIV Expr {
+  $$ = $1 / $3;
+}
+      | Term {
+  $$ = $1;
+}
 
-Expr_seq: ADD Mult_expr Expr_seq {}
-          | SUB Mult_expr Expr_seq {}
-          | {}
-          ;
 
-Mult_expr: Term Mult_expr_seq {}
-            ;
-
-Mult_expr_seq: MULT Term Mult_expr_seq {}
-               | DIV Term Mult_expr_seq {}
-               | MOD Term Mult_expr_seq {}
-               | {}
-               ;
-
-Term: Var {}
-      | NUMBER {}
-      | L_PAREN Expr R_PAREN {}
-      | SUB Var {}
-      | SUB NUMBER {}
-      | SUB L_PAREN Expr R_PAREN{}
+Term: Var {
+}
+      | NUMBER {
+  $$ = $1;
+}
+      | L_PAREN Expr R_PAREN {
+  $$ = $2;
+}
+      | SUB Var {
+  $$ = -1 * sym_table.find($2)->second.val;
+}
+      | SUB NUMBER {
+  $$ = -1 * $2;
+}
+      | SUB L_PAREN Expr R_PAREN{
+  $$ = -1 * ($3);
+}
       ;
 
 Neg_prime: SUB {}
@@ -253,12 +293,12 @@ int yyerror(char *s)
 }
 
 void add_sym(Sym sym)
-{    
+{
     if(sym_table.find(sym.name) == sym_table.end())
     {
         //symbol does not exist. Insert it.
         sym_table[sym.name] = sym;
-        
+
     }
     else
     {

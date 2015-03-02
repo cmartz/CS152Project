@@ -1,7 +1,7 @@
 
 
 OBJS = bison.o lex.o
-CC = /usr/bin/g++
+CC = g++
 CFLAGS = -g -Wall -pedantic -ll
 
 

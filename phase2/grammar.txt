@@ -1,0 +1,118 @@
+## e = epsilon ##
+
+PROGRAM --> program identifier ; BLOCK endprogram
+
+BLOCK --> DEC ; DEC' beginprogram STMNT ; STMNT'
+
+DEC' --> DEC ; DEC' | e
+
+DEC --> ident IDENT_SEQ ; array [ number ] of integer | ident IDENT_SEQ : integer
+
+IDENT_SEQ --> , ident IDENT_SEQ | e
+
+STMNT --> VAR := EXPR | VAR := BOOL_EXPR ? EXPR : EXPR
+          | if BOOL_EXPR then STMNT ; STMNT' COND_TAIL
+          | while BOOL_EXPR begin_loop STMNT ; STMNT' end_loop
+          | begin_loop STMNT ; STMNT' end_loop while BOOL_EXPR
+          | read VAR VAR'
+          | write VAR VAR'
+          | break
+          | continue
+          | exit
+
+VAR' --> , VAR VAR' | e
+
+BOOL_EXPR --> RELATION_AND_EXPR OR_SEQ
+
+OR_SEQ --> or RELATION_AND_EXPR OR_SEQ | e
+
+RELATION_AND_EXPR --> RELATION_EXPR AND_SEQ
+
+AND_SEQ --> and RELATION_EXPR AND_SEQ | e
+
+RELATION_EXPR --> NOT' EXPR COMP EXPR | NOT' true | NOT' false | NOT' ( BOOL_EXPR )
+                  | EXPR COMP EXPR | true | false | ( BOOL_EXPR )
+
+NOT' --> not | e
+
+COND_TAIL --> ELSE_IF_SEQ
+              | end_if
+              | else STMNT ; STMNT' end_if
+              | else_if STMNT ; STMNT' ELSE_IF_SEQ end_if
+              | else_if STMNT ; STMNT' ELSE_IF_SEQ else STMNT ; STMNT' end_if
+
+ELSE_IF_SEQ --> else_if STMNT ; STMNT' ELSE_IF_SEQ | e
+
+COMP --> == | <> | < | > | <= | >=
+
+
+EXPR --> TERM + EXPR |
+         TERM - EXPR |
+         TERM / EXPR |
+         TERM * EXPR |
+         TERM
+
+
+EXPR --> MULT_EXPR EXPR_SEQ
+
+EXPR_SEQ --> + MULT_EXPR EXPR_SEQ | - MULT_EXPR EXPR_SEQ | e
+
+MULT_EXPR --> TERM MULT_EXPR_SEQ
+
+MULT_EXPR_SEQ -->   * TERM MULT_EXPR_SEQ
+                  | / TERM MULT_EXPR_SEQ
+                  | % TERM MULT_EXPR_SEQ
+                  | e
+
+TERM --> NEG' VAR | NEG' number | NEG' ( EXPR ) | VAR | number | ( EXPR )
+
+NEG' --> - | e
+
+VAR --> ident | ident [ EXPR ]
+
+
+
+===========================
+
+Expr: Mult_expr Expr_seq {
+
+
+                         }
+      ;
+
+Expr_seq: ADD Mult_expr Expr_seq {}
+          | SUB Mult_expr Expr_seq {}
+          | {}
+          ;
+
+Mult_expr: Term Mult_expr_seq {}
+            ;
+
+Mult_expr_seq: MULT Term Mult_expr_seq {
+  $$ = $$ * $2;
+}
+               | DIV Term Mult_expr_seq {
+  $$ = $$
+}
+               | MOD Term Mult_expr_seq {}
+               | {}
+               ;
+
+
+=============================
+
+
+
+Var: IDENT {
+              $$ = $1;
+           }
+     | IDENT L_BRACKET Expr R_BRACKET {
+
+
+
+                                      }
+     ;
+
+Var_prime: COMMA Var Var_prime {}
+           | { cout << "HIHIHI" << endl;}
+           ;
