@@ -17,42 +17,7 @@ x, sqrt_n : integer;
 
 beginprogram	## main program
     ## compute the square root of n and put the result in sqrt_n
-    read n;
-    x := n;
-    x := i;
-    i := n;
-    while x > n / x beginloop
-      x := (x+n / x) / 2;
-    endloop;
-    sqrt_n := x;
+    ##read n;
+    x := x + (i + n) - 1 + 3 + x;
 
-    ## initialization of the array
-    i := 2;
-    while i <= n beginloop
-      a[i] := 0;
-      i := i + 1;
-    endloop;
-
-    ## make the array
-    i := 2;
-    while i <= sqrt_n beginloop
-      if a[i] == 0 then
-          ## i prime, so eliminate its multiples
-         j := i+i;
-         while j <= n beginloop
-           a[j] := 1;
-           j := j+i;
-         endloop;
-       endif;
-       i := i + 1;
-    endloop;
-
-    ## print primes
-    i := 2;
-    while i <= n beginloop
-      if a[i] == 0 then
-         write i;
-       endif;
-       i := i + 1 + 2;
-   endloop;
 endprogram
