@@ -2,7 +2,6 @@
 %option yylineno
 
 %{
-
 #include <unistd.h>
 #include "y.tab.h"
 /* Increment column number after every rule */
@@ -118,7 +117,7 @@ NEWLINE \n
 {GTE} return GTE;
 
 {NUMBER} yylval.int_val = atoi(yytext);return NUMBER;
-{IDENTIFIER} yylval.string_val = strdup( yytext ); return IDENT;
+{IDENTIFIER} yylval.string_val = strdup(yytext); return IDENT;
 {INVALID_IDEN_START}  printf("Error at line %d, column %d: identifier \"", yylineno, col); ECHO; printf("\" must begin with a letter\n"); exit(1);
 {INVALID_IDEN_END}  printf("Error at line %d, column %d: identifier \"", yylineno, col); ECHO; printf("\" cannot end with an underscore\n"); exit(1);
 
