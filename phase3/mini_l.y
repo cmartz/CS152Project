@@ -10,7 +10,7 @@ using namespace std;
 #include <sstream>
 #include <map>
 
-void add_temp(stack<string> &temps);
+string add_temp();
 int yyerror(char *s);
 int yyerror(string s);
 int yylex(void);
@@ -24,7 +24,6 @@ struct Sym
     Symtype type;
 };
 
-stack<string> temps;
 map <string, Sym> sym_table;
 void add_sym(Sym sym);
 
@@ -97,9 +96,10 @@ stringstream code;
 %token R_PAREN
 %token ASSIGN
 
+%type<string_val> Term
 %type<string_val> Var
-%type<int_val> Expr
-%type<int_val> Term
+%type<string_val> Expr
+
 
 %%
 Program: PROGRAM IDENT SEMICOLON {program_name = $2;}Block END_PROGRAM {}
@@ -136,30 +136,7 @@ Ident_seq: COMMA IDENT {
            ;
 
 Stmt: Var ASSIGN Expr {
-  if(sym_table.find($1) == sym_table.end())
-  {
-    string errormsg = "Undefined variable";
-    errormsg = errormsg + $1;
-    yyerror(errormsg);
-  }
-  else
-  {
-    sym_table.find($1)->second.val = $3;
-    code << "= " << $1 << ", " << temps.top() << endl;
-  }
-}
-      | Var ASSIGN Var {
-  if(sym_table.find($1) == sym_table.end())
-  {
-    string errormsg = "Undefined variable ";
-    errormsg = errormsg + $1;
-    yyerror(errormsg);
-  }
-  else
-  {
-    sym_table.find($1)->second.val = sym_table.find($3)->second.val;
-    code << "= " << $1 << ", " << $3 << endl;
-  }
+  code << "= " << $1 << ", " << $3 << endl;
 }
       | Var ASSIGN Bool_exp QUESTION Expr COLON Expr {}
       | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {}
@@ -202,12 +179,9 @@ Relation_exp: NOT Expr Comp Expr {}
               ;
 
 Var: IDENT {
-  $$ = $1;
+
 }
      | IDENT L_BRACKET Expr R_BRACKET {
-}
-     | SUB IDENT {
-
 }
      ;
 
@@ -238,126 +212,47 @@ Comp: EQ {}
       | GTE {}
       ;
 
-Expr: Term ADD Expr {
-  $$ = $1 + $3;
-  if(!temps.empty())
-  {
-    string rhs = temps.top();
-    add_temp(temps);
-    code << "+ " << temps.top() << ", " << $1 << ", " << rhs << endl;
-  }
-  else
-  {
-    add_temp(temps);
-    code << "+ " << temps.top() << ", " << $1 << ", " << $3 << endl;
-  }
+Expr: Term {
+  code << "Term!" << endl;
+}
+      | Term ADD Expr {
+  //code << "Expr!" << endl;
+  string tname = add_temp();
+  $$ = const_cast<char*>(tname.c_str());
+  code << "+ " << tname << ", " << $1 << ", " << $3 << endl;
 }
       | Term SUB Expr {
 
-  $$ = $1 - $3;
-  if(!temps.empty())
-  {
-    string rhs = temps.top();
-    add_temp(temps);
-    code << "- " << temps.top() << ", " << $1 << ", " << rhs << endl;
-  }
-  else
-  {
-    add_temp(temps);
-    code << "- " << temps.top() << ", " << $1 << ", " << $3 << endl;
-  }
 }
       | Term MULT Expr {
-  $$ = $1 * $3;
+
 }
       | Term DIV Expr {
-  $$ = $1 / $3;
-}
-      | Term {
-}
-      | Var ADD Expr {
-  if(!temps.empty())
-  {
-    string rhs = temps.top();
-    add_temp(temps);
-    code << "+ " << temps.top() << ", " << $1 << ", " << rhs << endl;
-  }
-  else
-  {
-    add_temp(temps);
-    code << "+ " << temps.top() << ", " << $1 << ", " << $3 << endl;
-  }
 
-}
-      | Var SUB Expr {
-  if(!temps.empty())
-  {
-    string rhs = temps.top();
-    add_temp(temps);
-    code << "- " << temps.top() << ", " << $1 << ", " << rhs << endl;
-  }
-  else
-  {
-    add_temp(temps);
-    code << "- " << temps.top() << ", " << $1 << ", " << $3 << endl;
-  }
-}
-      | Var MULT Expr {
-  if(!temps.empty())
-  {
-    string rhs = temps.top();
-    add_temp(temps);
-    code << "* " << temps.top() << ", " << $1 << ", " << rhs << endl;
-  }
-  else
-  {
-    add_temp(temps);
-    code << "* " << temps.top() << ", " << $1 << ", " << $3 << endl;
-  }
-}
-      | Var DIV Expr {
-  if(!temps.empty())
-  {
-    string rhs = temps.top();
-    add_temp(temps);
-    code << "/ " << temps.top() << ", " << $1 << ", " << rhs << endl;
-  }
-  else
-  {
-    add_temp(temps);
-    code << "/ " << temps.top() << ", " << $1 << ", " << $3 << endl;
-  }
-}
-      | Var MOD Expr {
-  if(!temps.empty())
-  {
-    string rhs = temps.top();
-    add_temp(temps);
-    code << "% " << temps.top() << ", " << $1 << ", " << rhs << endl;
-  }
-  else
-  {
-    add_temp(temps);
-    code << "% " << temps.top() << ", " << $1 << ", " << $3 << endl;
-  }
-}
-      | Var {
-  add_temp(temps);
-  code << "= " << temps.top() << ", " << $1 << endl;
-}
+};
 
 
-Term: NUMBER {
+
+Term: Var {
   $$ = $1;
+  code << "Var" << endl;
 }
+      | SUB Var {
+
+}
+
       | L_PAREN Expr R_PAREN {
-  $$ = $2;
-}
-      | SUB NUMBER {
-  $$ = -1 * $2;
 }
       | SUB L_PAREN Expr R_PAREN{
-  $$ = -1 * ($3);
+  code << "* " << $3 << ", " << $3 << ", " << -1 << endl;
+}
+      | NUMBER {
+  string tname = add_temp();
+  code << "= " << tname << ", " << $1 << endl;
+  $$ = const_cast<char*>(tname.c_str());
+  code << "Number" << endl;
+}
+      | SUB NUMBER {
 }
       ;
 
@@ -397,16 +292,16 @@ void add_sym(Sym sym)
     }
 }
 
-void add_temp(stack<string> &temps)
+string add_temp()
 {
-  string vname = "t" + to_string(temps.size() + 1);
-  temps.push(vname);
+  string vname = "t" + to_string(sym_table.size() + 1);
 
   Sym sym;
   sym.name = vname;
   sym.type = INTARR;
   add_sym(sym);
 
+  return vname;
 }
 
 void gen_variables()
