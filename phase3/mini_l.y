@@ -1,4 +1,4 @@
-%{
+    %{
 #define YY_NO_UNPUT
 using namespace std;
 #include <iostream>
@@ -17,15 +17,25 @@ int yylex(void);
 extern char * yytext;
 
 enum Symtype { INT, INTARR };
+
+enum Context { READING, WRITING };
+
 struct Sym
 {
     int val;
+    int size; //for arrays only; -1 otherwise
     string name;
     Symtype type;
 };
 
+stack<Context> context;
+string get_context();
+void pop_context();
+
+stack<string> temps;
 map <string, Sym> sym_table;
 void add_sym(Sym sym);
+void verify_sym(string name);
 
 string program_name;
 stringstream code;
@@ -115,12 +125,14 @@ Dec_prime: Dec SEMICOLON Dec_prime {}
 Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
                                                                             Sym sym;
                                                                             sym.name = $1;
+                                                                            sym.size = $6;
                                                                             sym.type = INTARR;
                                                                             add_sym(sym);
                                                                        }
       | IDENT Ident_seq COLON INTEGER {
                                         Sym sym;
                                         sym.name = $1;
+                                        sym.size = -1;
                                         sym.type = INT;
                                         add_sym(sym);
                                       }
@@ -142,8 +154,42 @@ Stmt: Var ASSIGN Expr {
       | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {}
       | WHILE Bool_exp BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP {}
       | BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP WHILE Bool_exp {}
-      | READ Var Var_prime {}
-      | WRITE Var Var_prime {}
+      | READ Var Var_prime {
+                                verify_sym($2);
+                                while(!(temps.empty()))
+                                {
+                                    string sym = temps.top();
+                                    if( sym_table[sym].type == INTARR )
+                                    {
+                                        temps.pop();
+                                        code << ".[]< " << sym << "," << temps.top() << endl;
+                                    }
+                                    else
+                                    {
+                                        code << ".< " << temps.top() << endl;
+                                    }
+
+                                    temps.pop();
+                                }
+                            }
+      | WRITE Var Var_prime {
+                                verify_sym($2);
+                                while(!(temps.empty()))
+                                {
+                                    string sym = temps.top();
+                                    if( sym_table[sym].type == INTARR )
+                                    {
+                                        temps.pop();
+                                        code << ".[]> " << sym << "," << temps.top() << endl;
+                                    }
+                                    else
+                                    {
+                                        code << ".> " << temps.top() << endl;
+                                    }
+
+                                    temps.pop();
+                                }
+                            }
       | BREAK {}
       | CONTINUE {}
       | EXIT {}
@@ -179,9 +225,15 @@ Relation_exp: NOT Expr Comp Expr {}
               ;
 
 Var: IDENT {
-
+  $$ = $1;
+  temps.push($1);
 }
      | IDENT L_BRACKET Expr R_BRACKET {
+  string tname = add_temp();
+  $$ = const_cast<char*>(tname.c_str());
+  code << "= " << tname << ", " << $1 << endl;
+  temps.push($3);
+  temps.push($1);
 }
      ;
 
@@ -214,9 +266,10 @@ Comp: EQ {}
 
 Expr: Term {
   code << "Term!" << endl;
+  $$ = $1;
 }
       | Term ADD Expr {
-  //code << "Expr!" << endl;
+  code << "Expr!" << endl;
   string tname = add_temp();
   $$ = const_cast<char*>(tname.c_str());
   code << "+ " << tname << ", " << $1 << ", " << $3 << endl;
@@ -250,7 +303,6 @@ Term: Var {
   string tname = add_temp();
   code << "= " << tname << ", " << $1 << endl;
   $$ = const_cast<char*>(tname.c_str());
-  code << "Number" << endl;
 }
       | SUB NUMBER {
 }
@@ -292,6 +344,17 @@ void add_sym(Sym sym)
     }
 }
 
+
+void verify_sym(string name)
+{
+    if(sym_table.find(name) == sym_table.end())
+    {
+        //Symbol does not exist. Throw error
+        string errormsg = "use of undeclared symbol " + name;
+        yyerror(errormsg);
+    }
+}
+
 string add_temp()
 {
   string vname = "t" + to_string(sym_table.size() + 1);
@@ -309,9 +372,51 @@ void gen_variables()
   map<string, Sym>::iterator it;
   for(it = sym_table.begin(); it != sym_table.end(); ++it)
   {
-    cout << ". " << it->second.name << endl;
+      if(it->second.type == INTARR)
+      {
+          cout << ".[] " << it->second.name << "," << it->second.size << endl;
+      }
+      else
+      {
+          cout << ". " << it->second.name << endl;
+      }
+
   }
 
+}
+
+string get_context()
+{
+    if(context.empty())
+    {
+       return "";
+    }
+
+    Context cntxt = context.top();
+
+    string ret_val;
+
+    switch(cntxt)
+    {
+        case READING:
+        ret_val = "<";
+        break;
+
+        case WRITING:
+        ret_val =  ">";
+        break;
+
+        default:
+        ret_val =  "";
+        break;
+    }
+
+    return ret_val;
+}
+
+void pop_context()
+{
+    context.pop();
 }
 
 int main(int argc, char **argv)
