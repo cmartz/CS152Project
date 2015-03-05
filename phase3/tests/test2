@@ -34,4 +34,6 @@ beginprogram	## main program
     
     write a, arr[567], b, arr[123];
 
+    x := 2 + 2;
+
 endprogram
