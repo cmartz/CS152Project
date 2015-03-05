@@ -17,7 +17,6 @@ x, sqrt_n : integer;
 
 beginprogram	## main program
     ## compute the square root of n and put the result in sqrt_n
-    ##read n;
-    x := x + (i + n) - 1 + 3 + x;
+    x := 2 + 2;
 
 endprogram
