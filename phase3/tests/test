@@ -17,6 +17,6 @@ x, sqrt_n : integer;
 
 beginprogram	## main program
     ## compute the square root of n and put the result in sqrt_n
-    x := 2 + 2 + 5 + 7;
+    x := 2 % -2 + 1 * 2;
 
 endprogram
