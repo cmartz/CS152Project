@@ -268,11 +268,16 @@ Expr: Term {
   code << "Term!" << endl;
   $$ = $1;
 }
-      | Term ADD Expr {
-  code << "Expr!" << endl;
-  string tname = add_temp();
-  $$ = const_cast<char*>(tname.c_str());
-  code << "+ " << tname << ", " << $1 << ", " << $3 << endl;
+    | Term ADD Expr {
+        cout << "Made it" << endl;
+                        string t2 = temps.top();
+                        temps.pop();
+                        string t3 = temps.top();
+                        temps.pop();
+                        string tname = add_temp();
+                        string t1 = temps.top();
+                        code << "+ " << t1 << ", " << t2 << ", " << t3 << endl;
+                        $$ = const_cast<char*>(tname.c_str());
 }
       | Term SUB Expr {
 
@@ -361,8 +366,9 @@ string add_temp()
 
   Sym sym;
   sym.name = vname;
-  sym.type = INTARR;
+  sym.type = INT;
   add_sym(sym);
+  temps.push(vname);
 
   return vname;
 }
