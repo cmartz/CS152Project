@@ -10,7 +10,6 @@ using namespace std;
 #include <sstream>
 #include <map>
 
-string add_temp();
 int yyerror(char *s);
 int yyerror(string s);
 int yylex(void);
@@ -32,7 +31,11 @@ stack<Context> context;
 string get_context();
 void pop_context();
 
+stack<string> labels;
+string add_label();
+
 stack<string> temps;
+string add_temp();
 map <string, Sym> sym_table;
 void add_sym(Sym sym);
 void verify_sym(string name);
@@ -81,12 +84,12 @@ stringstream code;
 
 
 /* Comparison Operators */
-%token EQ
-%token NEQ
-%token LT
-%token GT
-%token LTE
-%token GTE
+%token <string_val> EQ
+%token <string_val> NEQ
+%token <string_val> LT
+%token <string_val> GT
+%token <string_val> LTE
+%token <string_val> GTE
 
 /* Identifiers and Numbers */
 
@@ -110,6 +113,8 @@ stringstream code;
 %type<string_val> Expr
 %type<string_val> Var
 %type<string_val> Term
+
+%type<string_val> Comp
 
 
 %%
@@ -149,9 +154,27 @@ Ident_seq: COMMA IDENT {
            ;
 
 Stmt: Var ASSIGN Expr {
-  code << "= " << $1 << ", " << $3 << endl;
+  code << "= " << $1 << ", " << temps.top() << endl;
 }
-      | Var ASSIGN Bool_exp QUESTION Expr COLON Expr {}
+      | Var ASSIGN Bool_exp QUESTION Expr COLON Expr {
+  string lhs_label = add_label();
+  string rhs_label = add_label();
+  string end_label = add_label();
+  string t3 = temps.top();
+  temps.pop();
+  string t2 = temps.top();
+  temps.pop();
+
+  code << "?:= " << lhs_label << ", " << temps.top() << endl;
+  code << ": " << rhs_label << endl;
+
+  code << "= " << $1 << ", " << t3 << endl;
+  code << ":= " << end_label << endl;
+  code << ": " << lhs_label << endl;
+
+  code << "= " << $1 << ", " << t2 << endl;
+  code << ": " << end_label << endl;
+}
       | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {}
       | WHILE Bool_exp BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP {}
       | BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP WHILE Bool_exp {}
@@ -205,7 +228,10 @@ Bool_exp: Relation_and_exp Or_seq {}
           ;
 
 Or_seq: OR Relation_and_exp Or_seq {}
-          | {}
+          | {
+}
+        | {
+}
           ;
 
 Relation_and_exp: Relation_exp And_seq {}
@@ -215,15 +241,46 @@ And_seq: AND Relation_exp And_seq {}
          | {}
          ;
 
-Relation_exp: NOT Expr Comp Expr {}
+Relation_exp: NOT Expr Comp Expr {
+}
               | NOT FALSE {}
               | NOT TRUE {}
               | NOT L_PAREN Bool_exp R_PAREN {}
-              | Expr Comp Expr {}
+              | Expr Comp Expr {
+  string t2 = temps.top();
+  temps.pop();
+  string t3 = temps.top();
+  temps.pop();
+  string tname = add_temp();
+  string t1 = temps.top();
+  code << $2 << t1 << ", " << t3 << ", " << t2 << endl;
+  //$$ = const_cast<char*>(tname.c_str());
+}
               | FALSE {}
               | TRUE {}
               | L_PAREN Bool_exp R_PAREN {}
+              |
               ;
+
+Comp: EQ {
+  $$ = "== ";
+}
+      | NEQ {
+  $$ = "!= ";
+}
+      | LT {
+  $$ = "< ";
+}
+      | GT {
+  $$ = "> ";
+}
+      | LTE {
+  $$ = "<= ";
+}
+      | GTE {
+  $$ = ">= ";
+}
+      ;
 
 Var: IDENT {
   $$ = $1;
@@ -254,16 +311,8 @@ Else_if_seq: ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq {}
              | {}
              ;
 
-Comp: EQ {}
-      | NEQ {}
-      | LT {}
-      | GT {}
-      | LTE {}
-      | GTE {}
-      ;
-
 Expr: Mult_expr Expr_seq {
-  $$ = $2;
+
 }
 ;
 
@@ -287,7 +336,9 @@ Expr_seq: ADD Mult_expr Expr_seq {
   code << "- " << t1 << ", " << t3 << ", " << t2 << endl;
   $$ = const_cast<char*>(tname.c_str());
 }
-          | {}
+          | {
+
+}
           ;
 
 Mult_expr: Term Mult_expr_seq {
@@ -325,7 +376,9 @@ Mult_expr_seq: MULT Term Mult_expr_seq {
   code << "% " << t1 << ", " << t3 << ", " << t2 << endl;
   $$ = const_cast<char*>(tname.c_str());
 }
-               | {}
+               | {
+
+}
                ;
 
 
@@ -410,6 +463,15 @@ string add_temp()
   temps.push(vname);
 
   return vname;
+}
+
+string add_label()
+{
+  string lname = "L" + to_string(labels.size() + 1);
+
+  labels.push(lname);
+
+  return lname;
 }
 
 void gen_variables()
