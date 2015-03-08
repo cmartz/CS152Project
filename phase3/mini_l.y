@@ -16,7 +16,6 @@ int yylex(void);
 extern char * yytext;
 
 enum Symtype { INT, INTARR };
-
 enum Context { READING, WRITING };
 
 struct Sym
@@ -27,18 +26,18 @@ struct Sym
     Symtype type;
 };
 
-stack<Context> context;
+
 string get_context();
 void pop_context();
-
-stack<string> labels;
 string add_label();
-
-stack<string> temps;
 string add_temp();
-map <string, Sym> sym_table;
 void add_sym(Sym sym);
 void verify_sym(string name);
+
+map <string, Sym> sym_table;
+stack<Context> context;
+stack<string> temps;
+stack<string> labels;
 
 string program_name;
 stringstream code;
@@ -178,66 +177,87 @@ Stmt: Var ASSIGN Expr {
       | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {}
       | WHILE Bool_exp BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP {}
       | BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP WHILE Bool_exp {}
-      | READ Var Var_prime {
-  verify_sym($2);
-  while(!(temps.empty()))
+      | READ Var {
+  if(sym_table[temps.top()].type == INTARR)
   {
-      string sym = temps.top();
-      if( sym_table[sym].type == INTARR )
-      {
-          temps.pop();
-          code << ".[]< " << sym << "," << temps.top() << endl;
-      }
-      else
-      {
-          code << ".< " << temps.top() << endl;
-      }
-
-      temps.pop();
+    string dst = temps.top();
+    temps.pop();
+    string expr = temps.top();
+    code << ".[]< " << dst << ", " << expr << endl;
   }
-}
-      | WRITE Var Var_prime {
-  verify_sym($2);
-  while(!(temps.empty()))
+  else
   {
-      string sym = temps.top();
-      if( sym_table[sym].type == INTARR )
-      {
-          temps.pop();
-          code << ".[]> " << sym << "," << temps.top() << endl;
-      }
-      else
-      {
-          code << ".> " << temps.top() << endl;
-      }
-
-      temps.pop();
+    code << ".< " << temps.top() << endl;
   }
-}
-      | BREAK {}
-      | CONTINUE {}
-      | EXIT {}
+}Read_var_prime
+
+      | WRITE Var{
+  if(sym_table[temps.top()].type == INTARR)
+  {
+    string dst = temps.top();
+    temps.pop();
+    string expr = temps.top();
+    code << ".[]> " << dst << ", " << expr << endl;
+  }
+  else
+  {
+    code << ".> " << temps.top() << endl;
+  }
+}Write_var_prime
+
+      | BREAK {} //TODO
+      | CONTINUE {} //TODO
+      | EXIT {} //TODO
       ;
 
+Read_var_prime: COMMA Var{
+  if(sym_table[temps.top()].type == INTARR)
+  {
+    string dst = temps.top();
+    temps.pop();
+    string expr = temps.top();
+    code << ".[]< " << dst << ", " << expr << endl;
+  }
+  else
+  {
+    code << ".< " << temps.top() << endl;
+  }
+}Read_var_prime
+           | {}
+           ;
+
+Write_var_prime: COMMA Var{
+  if(sym_table[temps.top()].type == INTARR)
+  {
+    string dst = temps.top();
+    temps.pop();
+    string expr = temps.top();
+    code << ".[]> " << dst << ", " << expr << endl;
+  }
+  else
+  {
+    code << ".> " << temps.top() << endl;
+  }
+}Write_var_prime
+           | {}
+           ;
 
 Stmt_prime: Stmt SEMICOLON Stmt_prime {}
             | {}
             ;
 
-Bool_exp: Relation_and_exp Or_seq {}
+Bool_exp: Relation_and_exp Or_seq {} //TODO
           ;
 
-Or_seq: OR Relation_and_exp Or_seq {}
+Or_seq: OR Relation_and_exp Or_seq {}//TODO
           | {
 }
-        | {
-}
           ;
 
-Relation_and_exp: Relation_exp And_seq {}
+Relation_and_exp: Relation_exp And_seq {}//TODO
                   ;
 
-And_seq: AND Relation_exp And_seq {}
+And_seq: AND Relation_exp And_seq {}//TODO
          | {}
          ;
 
@@ -255,8 +275,11 @@ Relation_exp: NOT Expr Comp Expr {
   string tname = add_temp();
   code << "= " << tname << ", " << "true" << endl;
 }
-              | NOT TRUE {}
-              | NOT L_PAREN Bool_exp R_PAREN {}
+              | NOT TRUE {
+  string tname = add_temp();
+  code << "= " << tname << ", " << "false" << endl;
+}
+              | NOT L_PAREN Bool_exp R_PAREN {}//TODO
               | Expr Comp Expr {
   string t2 = temps.top();
   temps.pop();
@@ -266,9 +289,9 @@ Relation_exp: NOT Expr Comp Expr {
   string t1 = temps.top();
   code << $2 << t1 << ", " << t3 << ", " << t2 << endl;
 }
-              | FALSE {}
-              | TRUE {}
-              | L_PAREN Bool_exp R_PAREN {}
+              | FALSE {}//TODO
+              | TRUE {}//TODO
+              | L_PAREN Bool_exp R_PAREN {}//TODO
               |
               ;
 
@@ -298,12 +321,13 @@ Var: IDENT {
 }
      | IDENT L_BRACKET Expr R_BRACKET {
   string tname = add_temp();
+  sym_table[$1].type = INTARR;
   $$ = const_cast<char*>(tname.c_str());
   code << "= " << tname << ", " << $1 << endl;
   temps.push($3);
   temps.push($1);
 }
-     ;
+
 
 Var_prime: COMMA Var Var_prime {}
            | {}
@@ -473,9 +497,7 @@ string add_temp()
 string add_label()
 {
   string lname = "L" + to_string(labels.size() + 1);
-
   labels.push(lname);
-
   return lname;
 }
 
