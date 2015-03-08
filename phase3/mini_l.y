@@ -242,8 +242,19 @@ And_seq: AND Relation_exp And_seq {}
          ;
 
 Relation_exp: NOT Expr Comp Expr {
+  string t2 = temps.top();
+  temps.pop();
+  string t3 = temps.top();
+  temps.pop();
+  string tname = add_temp();
+  string t1 = temps.top();
+  code << "! " << t1 << ", " << t1 << endl;
+  code << $3 << t1 << ", " << t3 << ", " << t2 << endl;
 }
-              | NOT FALSE {}
+              | NOT FALSE {
+  string tname = add_temp();
+  code << "= " << tname << ", " << "true" << endl;
+}
               | NOT TRUE {}
               | NOT L_PAREN Bool_exp R_PAREN {}
               | Expr Comp Expr {
@@ -254,7 +265,6 @@ Relation_exp: NOT Expr Comp Expr {
   string tname = add_temp();
   string t1 = temps.top();
   code << $2 << t1 << ", " << t3 << ", " << t2 << endl;
-  //$$ = const_cast<char*>(tname.c_str());
 }
               | FALSE {}
               | TRUE {}
@@ -324,7 +334,6 @@ Expr_seq: ADD Mult_expr Expr_seq {
   string tname = add_temp();
   string t1 = temps.top();
   code << "+ " << t1 << ", " << t3 << ", " << t2 << endl;
-  $$ = const_cast<char*>(tname.c_str());
 }
           | SUB Mult_expr Expr_seq {
   string t2 = temps.top();
@@ -334,7 +343,6 @@ Expr_seq: ADD Mult_expr Expr_seq {
   string tname = add_temp();
   string t1 = temps.top();
   code << "- " << t1 << ", " << t3 << ", " << t2 << endl;
-  $$ = const_cast<char*>(tname.c_str());
 }
           | {
 
@@ -354,7 +362,6 @@ Mult_expr_seq: MULT Term Mult_expr_seq {
   string tname = add_temp();
   string t1 = temps.top();
   code << "* " << t1 << ", " << t3 << ", " << t2 << endl;
-  $$ = const_cast<char*>(tname.c_str());
 }
                | DIV Term Mult_expr_seq {
   string t2 = temps.top();
@@ -364,7 +371,6 @@ Mult_expr_seq: MULT Term Mult_expr_seq {
   string tname = add_temp();
   string t1 = temps.top();
   code << "/ " << t1 << ", " << t3 << ", " << t2 << endl;
-  $$ = const_cast<char*>(tname.c_str());
 }
                | MOD Term Mult_expr_seq {
   string t2 = temps.top();
@@ -374,7 +380,6 @@ Mult_expr_seq: MULT Term Mult_expr_seq {
   string tname = add_temp();
   string t1 = temps.top();
   code << "% " << t1 << ", " << t3 << ", " << t2 << endl;
-  $$ = const_cast<char*>(tname.c_str());
 }
                | {
 
