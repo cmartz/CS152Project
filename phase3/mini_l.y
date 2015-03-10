@@ -571,7 +571,7 @@ void verify_sym(string name)
 string add_temp()
 {
   string vname = "t" + to_string(sym_table.size() + 1);
-  
+
   code << ". " << vname << endl;
 
   Sym sym;
