@@ -1,6 +1,5 @@
     %{
 #define YY_NO_UNPUT
-using namespace std;
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -9,6 +8,7 @@ using namespace std;
 #include <stack>
 #include <sstream>
 #include <map>
+using namespace std;
 
 int yyerror(char *s);
 int yyerror(string s);
@@ -26,10 +26,8 @@ struct Sym
     Symtype type;
 };
 
-
-string get_context();
-void pop_context();
 string add_label();
+string add_while_label();
 string add_temp();
 void add_sym(Sym sym);
 void verify_sym(string name);
@@ -38,9 +36,12 @@ map <string, Sym> sym_table;
 stack<Context> context;
 stack<string> temps;
 stack<string> labels;
+stack<string> while_labels;
+
 
 string program_name;
 stringstream code;
+vector<string> errors;
 %}
 
 %error-verbose
@@ -174,9 +175,43 @@ Stmt: Var ASSIGN Expr {
   code << "= " << $1 << ", " << t2 << endl;
   code << ": " << end_label << endl;
 }
-      | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {}
-      | WHILE Bool_exp BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP {}
-      | BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP WHILE Bool_exp {}
+      | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {
+
+}
+      | WHILE {
+  string begin_label = add_while_label();
+  code << ": " << begin_label << endl;
+
+}Bool_exp {
+  string end_label = add_while_label();
+  string cond = temps.top();
+  string neg_cond = add_temp();
+  code << "! " << neg_cond << ", " << cond << endl;
+  code << "?:= " << end_label << ", " << neg_cond << endl;
+
+}BEGINLOOP Stmt SEMICOLON Stmt_prime ENDLOOP {
+  string end_label = while_labels.top();
+  while_labels.pop();
+  string begin_label = while_labels.top();
+  while_labels.pop();
+
+  code << ":= " << begin_label << endl;
+  code << ": " << end_label << endl;
+}
+
+      | BEGINLOOP {
+  string begin_label = add_while_label();
+  string end_label = add_while_label();
+  code << ": " << begin_label << endl;
+
+}Stmt SEMICOLON Stmt_prime ENDLOOP WHILE Bool_exp {
+  string end_label = while_labels.top();
+  while_labels.pop();
+  string begin_label = while_labels.top();
+  while_labels.pop();
+  code << "?:= " << begin_label << ", " << temps.top() << endl;
+  code << ": " << end_label << endl;
+}
       | READ Var {
   if(sym_table[temps.top()].type == INTARR)
   {
@@ -205,8 +240,34 @@ Stmt: Var ASSIGN Expr {
   }
 }Write_var_prime
 
-      | BREAK {} //TODO
-      | CONTINUE {} //TODO
+      | BREAK {
+  // break statement found outside of while loop
+  if(while_labels.size() == 0)
+  {
+    errors.push_back("break statement not within a loop");
+  }
+  else
+  {
+    string end_label = while_labels.top();
+    code << ":= " << end_label << endl;
+  }
+}
+      | CONTINUE {
+  // continue statement found outside of while loop
+  if(while_labels.size() == 0)
+  {
+    errors.push_back("continue statement not within a loop");
+  }
+  else
+  {
+    string end_label = while_labels.top();
+    while_labels.pop();
+    string begin_label = while_labels.top();
+    while_labels.push(end_label);
+
+    code << ":= " << begin_label << endl;
+  }
+}
       | EXIT {} //TODO
       ;
 
@@ -251,6 +312,7 @@ Bool_exp: Relation_and_exp Or_seq {} //TODO
 
 Or_seq: OR Relation_and_exp Or_seq {}//TODO
           | {
+
 }
           ;
 
@@ -273,11 +335,11 @@ Relation_exp: NOT Expr Comp Expr {
 }
               | NOT FALSE {
   string tname = add_temp();
-  code << "= " << tname << ", " << "true" << endl;
+  code << "= " << tname << ", " << 1 << endl;
 }
               | NOT TRUE {
   string tname = add_temp();
-  code << "= " << tname << ", " << "false" << endl;
+  code << "= " << tname << ", " << 0 << endl;
 }
               | NOT L_PAREN Bool_exp R_PAREN {}//TODO
               | Expr Comp Expr {
@@ -296,30 +358,40 @@ Relation_exp: NOT Expr Comp Expr {
               ;
 
 Comp: EQ {
-  $$ = "== ";
+  $$ = (char *)"== ";
 }
       | NEQ {
-  $$ = "!= ";
+  $$ = (char *)"!= ";
 }
       | LT {
-  $$ = "< ";
+  $$ = (char *)"< ";
 }
       | GT {
-  $$ = "> ";
+  $$ = (char *)"> ";
 }
       | LTE {
-  $$ = "<= ";
+  $$ = (char *)"<= ";
 }
       | GTE {
-  $$ = ">= ";
+  $$ = (char *)">= ";
 }
       ;
 
 Var: IDENT {
+  verify_sym($1);
+  if(sym_table[$1].type == INTARR)
+  {
+    errors.push_back("Cannot access array as scalar variable. Must use index");
+  }
   $$ = $1;
   temps.push($1);
 }
      | IDENT L_BRACKET Expr R_BRACKET {
+  verify_sym($1);
+  if(sym_table[$1].type != INTARR)
+  {
+    errors.push_back("Cannot access scalar variable as array.");
+  }
   string tname = add_temp();
   sym_table[$1].type = INTARR;
   $$ = const_cast<char*>(tname.c_str());
@@ -327,12 +399,6 @@ Var: IDENT {
   temps.push($3);
   temps.push($1);
 }
-
-
-Var_prime: COMMA Var Var_prime {}
-           | {}
-           ;
-
 
 Cond_tail: Else_if_seq {}
            | ENDIF {}
@@ -446,7 +512,7 @@ int yyerror(string s)
   extern char *yytext;	// defined and maintained in lex.c
   cerr << "ERROR: " << s << " at symbol \"" << yytext;
   cerr << "\" on line " << yylineno << endl;
-  exit(1);
+  return 1;
 }
 
 int yyerror(char *s)
@@ -466,7 +532,7 @@ void add_sym(Sym sym)
     {
         //symbol already exists. This is an error.
         string errormsg = "redeclaration of symbol " + sym.name;
-        yyerror(errormsg);
+        errors.push_back(errormsg);
     }
 }
 
@@ -477,7 +543,7 @@ void verify_sym(string name)
     {
         //Symbol does not exist. Throw error
         string errormsg = "use of undeclared symbol " + name;
-        yyerror(errormsg);
+        errors.push_back(errormsg);
     }
 }
 
@@ -501,6 +567,13 @@ string add_label()
   return lname;
 }
 
+string add_while_label()
+{
+  string lname = "WL" + to_string(while_labels.size() + 1);
+  while_labels.push(lname);
+  return lname;
+}
+
 void gen_variables()
 {
   map<string, Sym>::iterator it;
@@ -508,49 +581,15 @@ void gen_variables()
   {
       if(it->second.type == INTARR)
       {
-          cout << ".[] " << it->second.name << "," << it->second.size << endl;
+          code << ".[] " << it->second.name << "," << it->second.size << endl;
       }
       else
       {
-          cout << ". " << it->second.name << endl;
+          code << ". " << it->second.name << endl;
       }
 
   }
 
-}
-
-string get_context()
-{
-    if(context.empty())
-    {
-       return "";
-    }
-
-    Context cntxt = context.top();
-
-    string ret_val;
-
-    switch(cntxt)
-    {
-        case READING:
-        ret_val = "<";
-        break;
-
-        case WRITING:
-        ret_val =  ">";
-        break;
-
-        default:
-        ret_val =  "";
-        break;
-    }
-
-    return ret_val;
-}
-
-void pop_context()
-{
-    context.pop();
 }
 
 int main(int argc, char **argv)
@@ -559,10 +598,17 @@ int main(int argc, char **argv)
   yyparse();
 
   ofstream file(program_name.c_str());
+  if(errors.size() != 0)
+  {
+    for(int i = 0; i < errors.size(); ++i)
+    {
+      yyerror(errors[i]);
+    }
+    exit(1);
+  }
   gen_variables();
   // Not yet..
   //file << code.str();
   cout << code.str();
-
   return 0;
 }
