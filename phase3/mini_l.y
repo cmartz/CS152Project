@@ -120,7 +120,9 @@ vector<string> errors;
 
 
 %%
-Program: PROGRAM IDENT SEMICOLON {program_name = $2;}Block END_PROGRAM {}
+Program: PROGRAM IDENT SEMICOLON {program_name = $2;}Block END_PROGRAM {
+  code << ": " << "EndLabel" << endl;
+}
          ;
 
 Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime {}
@@ -177,9 +179,18 @@ Stmt: Var ASSIGN Expr {
   code << "= " << $1 << ", " << t2 << endl;
   code << ": " << end_label << endl;
 }
-      | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {
+      | IF Bool_exp {
+  string end_label = add_while_label();
+  string cond = temps.top();
+  string neg_cond = add_temp();
+  code << "! " << neg_cond << ", " << cond << endl;
+  code << "?:= " << end_label << ", " << neg_cond << endl;
+} THEN Stmt SEMICOLON Stmt_prime {
+  string end_label = while_labels.top();
+  while_labels.pop();
+  code << ": " << end_label << endl;
+}Cond_tail
 
-}
       | WHILE {
   string begin_label = add_while_label();
   code << ": " << begin_label << endl;
@@ -201,7 +212,7 @@ Stmt: Var ASSIGN Expr {
   code << ": " << end_label << endl;
 }
 
-      | BEGINLOOP {
+      | DO BEGINLOOP {
   string begin_label = add_while_label();
   string end_label = add_while_label();
   code << ": " << begin_label << endl;
@@ -270,7 +281,9 @@ Stmt: Var ASSIGN Expr {
     code << ":= " << begin_label << endl;
   }
 }
-      | EXIT {} //TODO
+      | EXIT {
+  code << ":= " << "EndLabel" << endl;
+}
       ;
 
 Read_var_prime: COMMA Var {
@@ -409,9 +422,17 @@ Cond_tail: Else_if_seq {}
            | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
            ;
 
-Else_if_seq: ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq {}
-             | {}
-             ;
+Else_if_seq: ELSEIF Bool_exp {
+  string end_label = add_while_label();
+  string cond = temps.top();
+  string neg_cond = add_temp();
+  code << "! " << neg_cond << ", " << cond << endl;
+  code << "?:= " << end_label << ", " << neg_cond << endl;
+} Stmt SEMICOLON Stmt_prime {
+  string end_label = while_labels.top();
+  while_labels.pop();
+  code << ": " << end_label << endl;
+} Else_if_seq {}
 
 Expr: Mult_expr Expr_seq {
 
@@ -610,9 +631,12 @@ int main(int argc, char **argv)
     }
     exit(1);
   }
-  gen_variables();
-  // Not yet..
-  //file << code.str();
-  cout << code.str();
+  else
+  {
+    gen_variables();
+    // Not yet..
+    //file << code.str();
+    cout << code.str();
+  }
   return 0;
 }
