@@ -36,14 +36,13 @@ map <string, Sym> sym_table;
 stack<Context> context;
 stack<string> temps;
 stack<string> labels;
+int while_labels_size;
 stack<string> while_labels;
 
 
 string program_name;
 stringstream code;
 vector<string> errors;
-
-void gen_variables();
 %}
 
 %error-verbose
@@ -123,7 +122,7 @@ void gen_variables();
 Program: PROGRAM IDENT SEMICOLON {program_name = $2;}Block END_PROGRAM {}
          ;
 
-Block: Dec SEMICOLON Dec_prime {gen_variables();} BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime {}
+Block: Dec SEMICOLON Dec_prime BEGIN_PROGRAM Stmt SEMICOLON Stmt_prime {}
        ;
 
 Dec_prime: Dec SEMICOLON Dec_prime {}
@@ -177,18 +176,9 @@ Stmt: Var ASSIGN Expr {
   code << "= " << $1 << ", " << t2 << endl;
   code << ": " << end_label << endl;
 }
-      | IF Bool_exp {
-          string end_label = add_while_label();
-          string cond = temps.top();
-          string neg_cond = add_temp();
-          code << "! " << neg_cond << ", " << cond << endl;
-          code << "?:= " << end_label << ", " << neg_cond << endl;
-      }THEN Stmt SEMICOLON Stmt_prime {
-          string end_label = while_labels.top();
-          while_labels.pop();
-          code << ": " << end_label << endl;
-}Cond_tail
+      | IF Bool_exp THEN Stmt SEMICOLON Stmt_prime Cond_tail {
 
+}
       | WHILE {
   string begin_label = add_while_label();
   code << ": " << begin_label << endl;
@@ -210,7 +200,7 @@ Stmt: Var ASSIGN Expr {
   code << ": " << end_label << endl;
 }
 
-      | DO BEGINLOOP {
+      | BEGINLOOP {
   string begin_label = add_while_label();
   string end_label = add_while_label();
   code << ": " << begin_label << endl;
@@ -282,7 +272,7 @@ Stmt: Var ASSIGN Expr {
       | EXIT {} //TODO
       ;
 
-Read_var_prime: COMMA Var{
+Read_var_prime: COMMA Var {
   if(sym_table[temps.top()].type == INTARR)
   {
     string dst = temps.top();
@@ -415,20 +405,10 @@ Cond_tail: Else_if_seq {}
            | ENDIF {}
            | ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
            | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ENDIF {}
-           | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF { code << "WE MADE IT" << endl; }
+           | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
            ;
 
-Else_if_seq: ELSEIF Bool_exp {
-    string end_label = add_while_label();
-    string cond = temps.top();
-    string neg_cond = add_temp();
-    code << "! " << neg_cond << ", " << cond << endl;
-    code << "?:= " << end_label << ", " << neg_cond << endl;
-} Stmt SEMICOLON Stmt_prime {
-    string end_label = while_labels.top();
-    while_labels.pop();
-    code << ": " << end_label << endl;
-} Else_if_seq {}
+Else_if_seq: ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq {}
              | {}
              ;
 
@@ -571,8 +551,6 @@ void verify_sym(string name)
 string add_temp()
 {
   string vname = "t" + to_string(sym_table.size() + 1);
-  
-  code << ". " << vname << endl;
 
   Sym sym;
   sym.name = vname;
@@ -592,7 +570,8 @@ string add_label()
 
 string add_while_label()
 {
-  string lname = "WL" + to_string(while_labels.size() + 1);
+
+  string lname = "WL" + to_string(++while_labels_size);
   while_labels.push(lname);
   return lname;
 }
@@ -617,6 +596,7 @@ void gen_variables()
 
 int main(int argc, char **argv)
 {
+
   yyparse();
 
   ofstream file(program_name.c_str());
@@ -628,10 +608,9 @@ int main(int argc, char **argv)
     }
     exit(1);
   }
-  //gen_variables();
+  gen_variables();
   // Not yet..
   //file << code.str();
-  //cout << code.str();
   cout << code.str();
   return 0;
 }
