@@ -16,7 +16,11 @@ i, j : integer;
 x, sqrt_n : integer;
 
 beginprogram	## main program
-    ## compute the square root of n and put the result in sqrt_n
-    x := 2 % -2 + 1 * 2;
-
+     ## make the array
+      if a[i] == 0 then
+        ## i prime, so eliminate its multiples
+         j := i+i;
+         ##break;
+         x := i + 1;
+      endif;
 endprogram

@@ -178,6 +178,7 @@ Stmt: Var ASSIGN Expr {
   code << "= " << $1 << ", " << temps.top() << endl;
 }
       | Var ASSIGN Bool_exp QUESTION Expr COLON Expr {
+  // TODO: Doesn't differentiate between array assignments and array access
   string lhs_label = add_label();
   string rhs_label = add_label();
   string end_label = add_label();
@@ -627,7 +628,7 @@ string add_while_label()
 string add_if_label()
 {
     static int id = 0;
-    
+
     string lname = "IL" + to_string(++id);
     if_labels.push(lname);
     return lname;
