@@ -133,6 +133,11 @@ Dec_prime: Dec SEMICOLON Dec_prime {}
       ;
 
 Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
+  if($1 == program_name)
+  {
+    string error = "Variable cannot have same name as program";
+    errors.push_back(error);
+  }
   Sym sym;
   sym.name = $1;
   sym.size = $6;
@@ -140,6 +145,11 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
   add_sym(sym);
 }
       | IDENT Ident_seq COLON INTEGER {
+  if($1 == program_name)
+  {
+    string error = "Variable cannot have same name as program";
+    errors.push_back(error);
+  }
   Sym sym;
   sym.name = $1;
   sym.size = -1;
@@ -149,6 +159,11 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
 ;
 
 Ident_seq: COMMA IDENT {
+  if($2 == program_name)
+  {
+    string error = "Variable cannot have same name as program";
+    errors.push_back(error);
+  }
   Sym sym;
   sym.name = $2;
   sym.type = INT;
