@@ -136,7 +136,7 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
   if($1 == program_name)
   {
     string error = "Variable cannot have same name as program";
-    errors.push_back(error);
+    yyerror(error);
   }
   Sym sym;
   sym.name = $1;
@@ -148,7 +148,7 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
   if($1 == program_name)
   {
     string error = "Variable cannot have same name as program";
-    errors.push_back(error);
+    yyerror(error);
   }
   Sym sym;
   sym.name = $1;
@@ -162,7 +162,7 @@ Ident_seq: COMMA IDENT {
   if($2 == program_name)
   {
     string error = "Variable cannot have same name as program";
-    errors.push_back(error);
+    yyerror(error);
   }
   Sym sym;
   sym.name = $2;
@@ -272,7 +272,7 @@ Stmt: Var ASSIGN Expr {
   // break statement found outside of while loop
   if(while_labels.size() == 0)
   {
-    errors.push_back("break statement not within a loop");
+    yyerror("break statement not within a loop");
   }
   else
   {
@@ -284,7 +284,7 @@ Stmt: Var ASSIGN Expr {
   // continue statement found outside of while loop
   if(while_labels.size() == 0)
   {
-    errors.push_back("continue statement not within a loop");
+    yyerror("continue statement not within a loop");
   }
   else
   {
@@ -411,7 +411,7 @@ Var: IDENT {
   verify_sym($1);
   if(sym_table[$1].type == INTARR)
   {
-    errors.push_back("Cannot access array as scalar variable. Must use index");
+    yyerror("Cannot access array as scalar variable. Must use index");
   }
   $$ = $1;
   temps.push($1);
@@ -420,7 +420,7 @@ Var: IDENT {
   verify_sym($1);
   if(sym_table[$1].type != INTARR)
   {
-    errors.push_back("Cannot access scalar variable as array.");
+    yyerror("Cannot access scalar variable as array.");
   }
   string tname = add_temp();
   sym_table[$1].type = INTARR;
@@ -547,8 +547,10 @@ int yyerror(string s)
 {
   extern int yylineno;	// defined and maintained in lex.c
   extern char *yytext;	// defined and maintained in lex.c
-  cerr << "ERROR: " << s << " at symbol \"" << yytext;
-  cerr << "\" on line " << yylineno << endl;
+  stringstream error;
+  error << "ERROR: " << s << " at symbol \"" << yytext;
+  error << "\" on line " << yylineno << endl;
+  errors.push_back(error.str());
   return 1;
 }
 
@@ -580,7 +582,7 @@ void verify_sym(string name)
     {
         //Symbol does not exist. Throw error
         string errormsg = "use of undeclared symbol " + name;
-        errors.push_back(errormsg);
+        yyerror(errormsg);
     }
 }
 
@@ -641,7 +643,7 @@ int main(int argc, char **argv)
   {
     for(int i = 0; i < errors.size(); ++i)
     {
-      yyerror(errors[i]);
+      printf("%s", errors[i].c_str());
     }
     exit(1);
   }
