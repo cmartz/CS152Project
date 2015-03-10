@@ -430,11 +430,10 @@ Var: IDENT {
   temps.push($1);
 }
 
-Cond_tail: Else_if_seq {}
-           | ENDIF {}
-           | ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
-           | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ENDIF {}
-           | ELSEIF Stmt SEMICOLON Stmt_prime Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
+Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
+           | Else_if_seq ENDIF {}
+           | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
+           |  ENDIF {}
            ;
 
 Else_if_seq: ELSEIF Bool_exp {
