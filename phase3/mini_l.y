@@ -28,6 +28,7 @@ struct Sym
 
 string add_label();
 string add_while_label();
+string add_if_label();
 string add_temp();
 void add_sym(Sym sym);
 void verify_sym(string name);
@@ -38,6 +39,7 @@ stack<string> temps;
 stack<string> labels;
 int while_labels_size;
 stack<string> while_labels;
+stack<string> if_labels;
 
 
 string program_name;
@@ -195,16 +197,23 @@ Stmt: Var ASSIGN Expr {
   code << ": " << end_label << endl;
 }
       | IF Bool_exp {
-  string end_label = add_while_label();
+  string end_label = add_if_label();
+  string next_cond_label = add_if_label();
   string cond = temps.top();
   string neg_cond = add_temp();
   code << "! " << neg_cond << ", " << cond << endl;
-  code << "?:= " << end_label << ", " << neg_cond << endl;
+  code << "?:= " << next_cond_label << ", " << neg_cond << endl;
 } THEN Stmt SEMICOLON Stmt_prime {
-  string end_label = while_labels.top();
-  while_labels.pop();
-  code << ": " << end_label << endl;
-}Cond_tail
+  string next_cond_label = if_labels.top();
+  if_labels.pop();
+  string end_label = if_labels.top();
+  code << ":= " << end_label << endl;
+  code << ": " << next_cond_label << endl;
+}Cond_tail ENDIF {
+    string end_label = if_labels.top();
+    if_labels.pop();
+    code << ": " << end_label << endl;
+}
 
       | WHILE {
   string begin_label = add_while_label();
@@ -430,23 +439,26 @@ Var: IDENT {
   temps.push($1);
 }
 
-Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
-           | Else_if_seq ENDIF {}
-           | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
-           |  ENDIF {}
+Cond_tail: ELSE Stmt SEMICOLON Stmt_prime {}
+           | Else_if_seq {}
+           | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime {}
            ;
 
 Else_if_seq: ELSEIF Bool_exp {
-  string end_label = add_while_label();
+  string next_cond_label = add_if_label();
   string cond = temps.top();
   string neg_cond = add_temp();
   code << "! " << neg_cond << ", " << cond << endl;
-  code << "?:= " << end_label << ", " << neg_cond << endl;
+  code << "?:= " << next_cond_label << ", " << neg_cond << endl;
 } Stmt SEMICOLON Stmt_prime {
-  string end_label = while_labels.top();
-  while_labels.pop();
-  code << ": " << end_label << endl;
+  string next_cond_label = if_labels.top();
+  if_labels.pop();
+  string end_label = if_labels.top();
+  code << ":= " << end_label << endl;
+  code << ": " << next_cond_label << endl;
 } Else_if_seq {}
+              |
+              ;
 
 Expr: Mult_expr Expr_seq {
 
@@ -607,10 +619,18 @@ string add_label()
 
 string add_while_label()
 {
-
   string lname = "WL" + to_string(++while_labels_size);
   while_labels.push(lname);
   return lname;
+}
+
+string add_if_label()
+{
+    static int id = 0;
+    
+    string lname = "IL" + to_string(++id);
+    if_labels.push(lname);
+    return lname;
 }
 
 void gen_variables()
