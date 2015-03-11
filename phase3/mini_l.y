@@ -474,9 +474,8 @@ Var: IDENT {
 }
 
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
-           | Else_if_seq ENDIF {}
+           | Else_if_seq ENDIF{}
            | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
-           | ENDIF {}
            ;
 
 Else_if_seq: ELSEIF Bool_exp {
@@ -492,7 +491,7 @@ Else_if_seq: ELSEIF Bool_exp {
   code << ":= " << end_label << endl;
   code << ": " << next_cond_label << endl;
 } Else_if_seq {}
-              |
+              | {}
               ;
 
 Expr: Mult_expr Expr_seq {
