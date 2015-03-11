@@ -41,7 +41,6 @@ int while_labels_size;
 stack<string> while_labels;
 stack<string> if_labels;
 
-
 string program_name;
 stringstream code;
 stringstream vars;
@@ -174,11 +173,29 @@ Ident_seq: COMMA IDENT {
            |
            ;
 
-Stmt: Var ASSIGN Expr {
-  code << "= " << $1 << ", " << temps.top() << endl;
+Stmt: Var ASSIGN Expr{
+  if(sym_table[$1].type == INTARR)
+  {
+    string source = temps.top();
+    temps.pop();
+    temps.pop();
+    string index = temps.top();
+    code << "[]= " << $1 << ", " << index << ", " << source << endl;
+  }
+  else
+  {
+    if(sym_table[$3].type == INTARR)
+    {
+      string source = temps.top();
+      code << "= " << $1 << ", " << source << endl;
+    }
+    else
+    {
+      code << "= " << $1 << ", " << temps.top() << endl;
+    }
+  }
 }
       | Var ASSIGN Bool_exp QUESTION Expr COLON Expr {
-  // TODO: Doesn't differentiate between array assignments and array access
   string lhs_label = add_label();
   string rhs_label = add_label();
   string end_label = add_label();
@@ -411,7 +428,6 @@ Relation_exp: NOT Expr Comp Expr {
               | FALSE {}//TODO
               | TRUE {}//TODO
               | L_PAREN Bool_exp R_PAREN {}//TODO
-              |
               ;
 
 Comp: EQ {
@@ -449,12 +465,12 @@ Var: IDENT {
   {
     yyerror("Cannot access scalar variable as array.");
   }
-  string tname = add_temp();
   sym_table[$1].type = INTARR;
-  $$ = const_cast<char*>(tname.c_str());
-  code << "= " << tname << ", " << $1 << endl;
-  temps.push($3);
-  temps.push($1);
+  $$ = const_cast<char*>($1);
+  string index = temps.top();
+  string tname = add_temp();
+  code << "=[] " << tname << ", " << $1 << ", " << index << endl;
+  //temps.push($1);
 }
 
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
