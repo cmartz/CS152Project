@@ -210,7 +210,7 @@ Stmt: Var ASSIGN Expr {
   string end_label = if_labels.top();
   code << ":= " << end_label << endl;
   code << ": " << next_cond_label << endl;
-}Cond_tail ENDIF {
+}Cond_tail {
     string end_label = if_labels.top();
     if_labels.pop();
     code << ": " << end_label << endl;
@@ -350,16 +350,30 @@ Stmt_prime: Stmt SEMICOLON Stmt_prime {}
 Bool_exp: Relation_and_exp Or_seq {} //TODO
           ;
 
-Or_seq: OR Relation_and_exp Or_seq {}//TODO
-          | {
-
-}
+Or_seq: OR Relation_and_exp Or_seq {
+    string t2 = temps.top();
+    temps.pop();
+    string t3 = temps.top();
+    temps.pop();
+    string tname = add_temp();
+    string t1 = temps.top();
+    code << "|| " << t1 << ", " << t3 << ", " << t2 << endl;
+}//TODO
+          | {}
           ;
 
 Relation_and_exp: Relation_exp And_seq {}//TODO
                   ;
 
-And_seq: AND Relation_exp And_seq {}//TODO
+And_seq: AND Relation_exp And_seq {
+    string t2 = temps.top();
+    temps.pop();
+    string t3 = temps.top();
+    temps.pop();
+    string tname = add_temp();
+    string t1 = temps.top();
+    code << "&& " << t1 << ", " << t3 << ", " << t2 << endl;
+}
          | {}
          ;
 
@@ -381,7 +395,10 @@ Relation_exp: NOT Expr Comp Expr {
   string tname = add_temp();
   code << "= " << tname << ", " << 0 << endl;
 }
-              | NOT L_PAREN Bool_exp R_PAREN {}//TODO
+              | NOT L_PAREN Bool_exp R_PAREN {
+                  string t1 = temps.top();
+                  code << "! " << t1 << ", " << t1 << endl;
+}//TODO
               | Expr Comp Expr {
   string t2 = temps.top();
   temps.pop();
@@ -440,9 +457,10 @@ Var: IDENT {
   temps.push($1);
 }
 
-Cond_tail: ELSE Stmt SEMICOLON Stmt_prime {}
-           | Else_if_seq {}
-           | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime {}
+Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
+           | Else_if_seq ENDIF {}
+           | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
+           | ENDIF {}
            ;
 
 Else_if_seq: ELSEIF Bool_exp {
