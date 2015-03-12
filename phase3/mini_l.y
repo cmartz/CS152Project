@@ -474,11 +474,11 @@ Var: IDENT {
 }
 
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
-           | Else_if_seq ENDIF{}
-           | Else_if_seq ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
+           | Else_if Else_if_prime ENDIF {}
+           | Else_if Else_if_prime ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
            ;
 
-Else_if_seq: ELSEIF Bool_exp {
+Else_if: ELSEIF Bool_exp {
   string next_cond_label = add_if_label();
   string cond = temps.top();
   string neg_cond = add_temp();
@@ -490,9 +490,11 @@ Else_if_seq: ELSEIF Bool_exp {
   string end_label = if_labels.top();
   code << ":= " << end_label << endl;
   code << ": " << next_cond_label << endl;
-} Else_if_seq {}
-              | {}
+}
               ;
+
+Else_if_prime: Else_if Else_if_prime |
+                                     {};
 
 Expr: Mult_expr Expr_seq {
 
