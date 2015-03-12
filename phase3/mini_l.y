@@ -402,8 +402,8 @@ Relation_exp: NOT Expr Comp Expr {
   temps.pop();
   string tname = add_temp();
   string t1 = temps.top();
-  code << "! " << t1 << ", " << t1 << endl;
   code << $3 << t1 << ", " << t3 << ", " << t2 << endl;
+  code << "! " << t1 << ", " << t1 << endl;
 }
               | NOT FALSE {
   string tname = add_temp();
