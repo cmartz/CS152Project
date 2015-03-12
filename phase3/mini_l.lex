@@ -1,9 +1,11 @@
 /* Allows use of yylineno */
 %option yylineno
+%option noyywrap
 
 %{
 #include <unistd.h>
 #include "y.tab.h"
+#include <string.h>
 /* Increment column number after every rule */
 int col = 0;
 #define YY_USER_ACTION { col += yyleng; }

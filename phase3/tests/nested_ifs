@@ -8,16 +8,16 @@
 ##
 ##  Requires a specified integer n as input, assumed to be < 1000.
 
-program primes;
+program nested_ifs;
 
 n : integer;
 
 beginprogram	## main program
     ## compute the square root of n and put the result in sqrt_n
-
-    if n == 5 then
-        if n == 0 then
+    if true then
+        if true then
             n := 2;
+            write n;
         elseif n == 1
             n := 3;
         else

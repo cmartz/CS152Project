@@ -42,6 +42,7 @@ stack<string> while_labels;
 stack<string> if_labels;
 
 string program_name;
+stringstream output;
 stringstream code;
 stringstream vars;
 vector<string> errors;
@@ -415,7 +416,7 @@ Relation_exp: NOT Expr Comp Expr {
               | NOT L_PAREN Bool_exp R_PAREN {
                   string t1 = temps.top();
                   code << "! " << t1 << ", " << t1 << endl;
-}//TODO
+}
               | Expr Comp Expr {
   string t2 = temps.top();
   temps.pop();
@@ -425,9 +426,17 @@ Relation_exp: NOT Expr Comp Expr {
   string t1 = temps.top();
   code << $2 << t1 << ", " << t3 << ", " << t2 << endl;
 }
-              | FALSE {}//TODO
-              | TRUE {}//TODO
-              | L_PAREN Bool_exp R_PAREN {}//TODO
+              | FALSE {
+  string tname = add_temp();
+  code << "= " << tname << ", " << 0 << endl;
+}
+              | TRUE {
+  string tname = add_temp();
+  code << "= " << tname << ", " << 1 << endl;
+}
+              | L_PAREN Bool_exp R_PAREN {
+
+}
               ;
 
 Comp: EQ {
@@ -620,7 +629,7 @@ void add_sym(Sym sym)
     {
         //symbol already exists. This is an error.
         string errormsg = "redeclaration of symbol " + sym.name;
-        errors.push_back(errormsg);
+        yyerror(errormsg);
     }
 }
 
@@ -692,17 +701,14 @@ void gen_variables()
       }
 
   }
-  // Not yet..
-  //file << vars.str();
-  cout << vars.str();
+  output << vars.str();
+  //cout << vars.str();
 }
 
 int main(int argc, char **argv)
 {
 
   yyparse();
-
-  ofstream file(program_name.c_str());
   if(errors.size() != 0)
   {
     for(int i = 0; i < errors.size(); ++i)
@@ -714,9 +720,10 @@ int main(int argc, char **argv)
   else
   {
     gen_variables();
-    // Not yet..
-    //file << code.str();
-    cout << code.str();
+    output << code.str();
+    //cout << code.str();
+    ofstream FILE((program_name + ".mil").c_str());
+    FILE << output.rdbuf();
   }
   return 0;
 }
