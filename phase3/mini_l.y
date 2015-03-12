@@ -12,7 +12,7 @@ using namespace std;
 
 int yyerror(char *s);
 int yyerror(string s);
-int yylex(void);
+extern int yylex(void);
 extern char * yytext;
 
 enum Symtype { INT, INTARR };
@@ -636,7 +636,9 @@ void verify_sym(string name)
 
 string add_temp()
 {
-  string vname = "t" + to_string(sym_table.size() + 1);
+  stringstream ss;
+  ss << sym_table.size() + 1;
+  string vname = "t" + ss.str();
   Sym sym;
   sym.name = vname;
   sym.type = INT;
@@ -648,14 +650,18 @@ string add_temp()
 
 string add_label()
 {
-  string lname = "L" + to_string(labels.size() + 1);
+  stringstream ss;
+  ss << labels.size() + 1;
+  string lname = "L" + ss.str();
   labels.push(lname);
   return lname;
 }
 
 string add_while_label()
 {
-  string lname = "WL" + to_string(++while_labels_size);
+  stringstream ss;
+  ss << ++while_labels_size;
+  string lname = "WL" + ss.str();
   while_labels.push(lname);
   return lname;
 }
@@ -663,8 +669,9 @@ string add_while_label()
 string add_if_label()
 {
     static int id = 0;
-
-    string lname = "IL" + to_string(++id);
+    stringstream ss;
+    ss << ++id;
+    string lname = "IL" + ss.str();
     if_labels.push(lname);
     return lname;
 }
