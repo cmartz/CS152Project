@@ -476,6 +476,7 @@ Var: IDENT {
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
            | Else_if Else_if_prime ENDIF {}
            | Else_if Else_if_prime ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
+           | ENDIF
            ;
 
 Else_if: ELSEIF Bool_exp {
