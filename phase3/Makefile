@@ -1,8 +1,6 @@
-
-
 OBJS = bison.o lex.o
 CC = /usr/bin/g++
-CFLAGS = -g -Wall -pedantic -ll
+CFLAGS = -g -pedantic
 
 
 parser: $(OBJS)
