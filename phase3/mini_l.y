@@ -287,12 +287,12 @@ Stmt: Var ASSIGN Expr{
   code << ": " << end_label << endl;
 }
       | READ Var {
-  if(sym_table[temps.top()].type == INTARR)
+  if(sym_table[$2].type == INTARR)
   {
-    string dst = temps.top();
+    //string dst = temps.top();
     temps.pop();
     string expr = temps.top();
-    code << ".[]< " << dst << ", " << expr << endl;
+    code << ".[]< " << $2 << ", " << expr << endl;
   }
   else
   {
@@ -301,12 +301,12 @@ Stmt: Var ASSIGN Expr{
 }Read_var_prime
 
       | WRITE Var{
-  if(sym_table[temps.top()].type == INTARR)
+  if(sym_table[$2].type == INTARR)
   {
-    string dst = temps.top();
+    //string dst = temps.top();
     temps.pop();
     string expr = temps.top();
-    code << ".[]> " << dst << ", " << expr << endl;
+    code << ".[]> " << $2 << ", " << expr << endl;
   }
   else
   {
@@ -348,12 +348,12 @@ Stmt: Var ASSIGN Expr{
       ;
 
 Read_var_prime: COMMA Var {
-  if(sym_table[temps.top()].type == INTARR)
+  if(sym_table[$2].type == INTARR)
   {
-    string dst = temps.top();
+    //string dst = temps.top();
     temps.pop();
     string expr = temps.top();
-    code << ".[]< " << dst << ", " << expr << endl;
+    code << ".[]< " << $2 << ", " << expr << endl;
   }
   else
   {
@@ -364,12 +364,12 @@ Read_var_prime: COMMA Var {
            ;
 
 Write_var_prime: COMMA Var{
-  if(sym_table[temps.top()].type == INTARR)
+  if(sym_table[$2].type == INTARR)
   {
-    string dst = temps.top();
+    //string dst = temps.top();
     temps.pop();
     string expr = temps.top();
-    code << ".[]> " << dst << ", " << expr << endl;
+    code << ".[]> " << $2 << ", " << expr << endl;
   }
   else
   {

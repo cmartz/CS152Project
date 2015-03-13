@@ -17,7 +17,7 @@ x, sqrt_n : integer;
 
 beginprogram	## main program
     ## compute the square root of n and put the result in sqrt_n
-    a[i] := 1 == 1 or 1 > 2 ? 1 + x : 0;
+    a[i] := 1 == 1 ? 1 : 0;
     ## initialization of the array
     ##i := 0;
     ##n := 10;
