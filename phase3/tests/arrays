@@ -15,23 +15,11 @@ a : array[10] of integer;	## prime candidates array
 i, j : integer;
 x, sqrt_n : integer;
 
-beginprogram	## main program
+beginprogram	## main programa[
     ## compute the square root of n and put the result in sqrt_n
     ## initialization of the array
-    i := 0;
-    n := 10;
-    while i < n beginloop
-      a[i] := 0;
-      i := i + 1;
-    endloop;
-
-    i := 0;
-    while i < n beginloop
-       a[i] := 1 == 1 ? i : 0;
-       write a[i];
-       ##write i;
-       i := i + 1;
-    endloop;
+    a[i] := a[1];
+    ##a[i] := a[1] + 2+1;
 
 
 endprogram

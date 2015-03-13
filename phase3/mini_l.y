@@ -179,11 +179,7 @@ Stmt: Var ASSIGN Expr{
   {
     string source = temps.top();
     temps.pop();
-    temps.pop();
 
-    if(sym_table[$3].type == INTARR)
-       temps.pop();
- 
     string index = temps.top();
     code << "[]= " << $1 << ", " << index << ", " << source << endl;
   }
@@ -499,9 +495,9 @@ Var: IDENT {
   sym_table[$1].type = INTARR;
   $$ = const_cast<char*>($1);
   string index = temps.top();
-  string tname = add_temp();
-  code << "=[] " << tname << ", " << $1 << ", " << index << endl;
-  //temps.push($1);
+
+  //string tname = add_temp();
+  //code << "=[] " << tname << ", " << $1 << ", " << index << endl;
 }
 
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
