@@ -651,8 +651,9 @@ string add_temp()
 
 string add_label()
 {
+  static int id = 0;
   stringstream ss;
-  ss << labels.size() + 1;
+  ss << ++id;
   string lname = "L" + ss.str();
   labels.push(lname);
   return lname;
