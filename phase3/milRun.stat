@@ -13,22 +13,22 @@
 /	0
 *	0
 -	0
-+	30
-[]=	21
-=[]	73
-.[]>	21
++	32
+[]=	25
+=[]	80
+.[]>	22
 .>	0
 .[]<	10
 .<	0
-=	138
+=	149
 
 
 Total # of branches/gotos:	63
 Total # of logical ops:	33
 Total # of comparison ops:	33
-Total # of arithmetic ops:	30
-Total # of array accesses:	125
-Total # of copy ops:	138
+Total # of arithmetic ops:	32
+Total # of array accesses:	137
+Total # of copy ops:	149
 
 
-Total # of instructions executed:	422
+Total # of instructions executed:	447
