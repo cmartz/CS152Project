@@ -1,0 +1,19 @@
+program array_read;
+
+n : integer;
+a : array[10] of integer;	## prime candidates array
+i, j : integer;
+x, sqrt_n : integer;
+
+beginprogram	## main program
+    ## compute the square root of n and put the result in sqrt_n
+    ## initialization of the array
+    i := 0;
+    n := 10;
+    while i < n beginloop
+      read a[i];
+      i := i + 1;
+    endloop;
+
+
+endprogram
