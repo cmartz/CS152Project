@@ -197,6 +197,7 @@ Stmt: Var ASSIGN Expr{
   }
 }
       | Var ASSIGN Bool_exp QUESTION Expr COLON Expr {
+
   string lhs_label = add_label();
   string rhs_label = add_label();
   string end_label = add_label();
@@ -204,16 +205,31 @@ Stmt: Var ASSIGN Expr{
   temps.pop();
   string t2 = temps.top();
   temps.pop();
+  string index = temps.top();
+  if(sym_table[$1].type == INTARR)
+  {
+    code << "?:= " << lhs_label << ", " << temps.top() << endl;
+    code << ": " << rhs_label << endl;
 
-  code << "?:= " << lhs_label << ", " << temps.top() << endl;
-  code << ": " << rhs_label << endl;
+    code << "[]= " << $1 << ", " << index << ", " << t3 << endl;
+    code << ":= " << end_label << endl;
+    code << ": " << lhs_label << endl;
 
-  code << "= " << $1 << ", " << t3 << endl;
-  code << ":= " << end_label << endl;
-  code << ": " << lhs_label << endl;
+    code << "[]= " << $1 << ", " << index << ", " << t2 << endl;
+    code << ": " << end_label << endl;
+  }
+  else
+  {
+    code << "?:= " << lhs_label << ", " << temps.top() << endl;
+    code << ": " << rhs_label << endl;
 
-  code << "= " << $1 << ", " << t2 << endl;
-  code << ": " << end_label << endl;
+    code << "= " << $1 << ", " << t3 << endl;
+    code << ":= " << end_label << endl;
+    code << ": " << lhs_label << endl;
+
+    code << "= " << $1 << ", " << t2 << endl;
+    code << ": " << end_label << endl;
+  }
 }
       | IF Bool_exp {
   string end_label = add_if_label();

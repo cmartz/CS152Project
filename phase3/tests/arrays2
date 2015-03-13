@@ -12,19 +12,31 @@ program arrays;
 
 n : integer;
 a : array[10] of integer;	## prime candidates array
-i, j : integer;
-x, sqrt_n : integer;
+i, x : integer;
 
 beginprogram	## main program
     ## compute the square root of n and put the result in sqrt_n
-    a[i] := 1 == 1 or 1 > 2 ? 1 + x : 0;
+
     ## initialization of the array
-    ##i := 0;
-    ##n := 10;
-    ##while i < n beginloop
-    ##  a[i] := 0;
-    ##  i := i + 1;
-    ##endloop;
+    i := 0;
+    x := 5;
+    n := 10;
+    while i < n beginloop
+      a[i] := 0;
+      i := i + 1;
+    endloop;
 
+    ## make the array
+    i := 0;
+    while i <= 9 beginloop
+      
+       ##if ( a[0] == 0 or a[0] == 1 ) and a[i] == 0 then
+       if (x == 5 and i == 0) and a[i] == 0 then 
+	 write x;
+       endif;
 
+       i := i + 1;
+    endloop;
+
+ 
 endprogram
