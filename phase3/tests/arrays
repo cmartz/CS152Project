@@ -1,0 +1,49 @@
+##  primes.min: compute primes using Sieve of Eratosthenes
+##  (http://en.wikipedia.org/wiki/Sieve_of_Eratosthenes)
+##
+##  Compute primes up to a specified n by crossing out multiples of successively
+##  larger primes in a boolean array.  The array stores a[k] = 1 if k is composite
+##  (not prime), and a[k] = 0 if k is not divisible by the divisors considered
+##  thus far.
+##
+##  Requires a specified integer n as input, assumed to be < 1000.
+
+program arrays;
+
+n : integer;
+a : array[10] of integer;	## prime candidates array
+i, j : integer;
+x, sqrt_n : integer;
+
+beginprogram	## main program
+    ## compute the square root of n and put the result in sqrt_n
+
+    ## initialization of the array
+    i := 0;
+    n := 10;
+    while i < n beginloop
+      a[i] := 0;
+      i := i + 1;
+    endloop;
+
+    ## make the array
+    i := 0;
+    while i <= 9 beginloop
+       a[i] := 1 == 1 ? 1 : 0;
+      
+       ##write i;
+       write a[i]; 
+ 
+       ##if a[i] == 1 then
+       ##   a[i] := a[i] + 1;
+       ##else
+       ##   a[i] := a[i] - 1;
+       ##endif;
+
+       ##write a[i];
+
+       i := i + 1;
+    endloop;
+
+ 
+endprogram
