@@ -180,6 +180,10 @@ Stmt: Var ASSIGN Expr{
     string source = temps.top();
     temps.pop();
     temps.pop();
+
+    if(sym_table[$3].type == INTARR)
+       temps.pop();
+ 
     string index = temps.top();
     code << "[]= " << $1 << ", " << index << ", " << source << endl;
   }

@@ -28,8 +28,8 @@ beginprogram	## main program
       i := i + 1;
     endloop;
 
-    read a[3];
-    write a[3];
+    ##read a[3];
+    ##write a[3];
     ## make the array
     i := 0;
     while i <= 9 beginloop
@@ -38,6 +38,14 @@ beginprogram	## main program
        write a[i];
 
        i := i + 1;
+    endloop;
+
+    a[5] := 0;
+    write a[5];
+    while a[5] < 10 beginloop
+    
+    	write a[5];
+        a[5] := a[5] + 1;
     endloop;
 
  ##write x, y, z;

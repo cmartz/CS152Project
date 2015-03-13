@@ -1,6 +1,6 @@
-?:=	22
-:=	20
-!	22
+?:=	33
+:=	30
+!	33
 &&	0
 ||	0
 >=	0
@@ -8,27 +8,27 @@
 !=	0
 ==	0
 <=	11
-<	11
+<	22
 %	0
 /	0
 *	0
 -	0
-+	20
-[]=	10
-=[]	32
-.[]>	0
-.>	11
-.[]<	0
-.<	11
-=	75
++	30
+[]=	21
+=[]	73
+.[]>	21
+.>	0
+.[]<	10
+.<	0
+=	138
 
 
-Total # of branches/gotos:	42
-Total # of logical ops:	22
-Total # of comparison ops:	22
-Total # of arithmetic ops:	20
-Total # of array accesses:	42
-Total # of copy ops:	75
+Total # of branches/gotos:	63
+Total # of logical ops:	33
+Total # of comparison ops:	33
+Total # of arithmetic ops:	30
+Total # of array accesses:	125
+Total # of copy ops:	138
 
 
-Total # of instructions executed:	245
+Total # of instructions executed:	422
