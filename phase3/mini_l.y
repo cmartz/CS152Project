@@ -505,6 +505,7 @@ Var: IDENT {
 
     //string tname = add_temp();
     //code << "=[] " << tname << ", " << $1 << ", " << index << endl;
+  }
 }
 
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
