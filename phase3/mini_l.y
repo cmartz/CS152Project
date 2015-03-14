@@ -140,6 +140,11 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
     string error = "Variable cannot have same name as program";
     yyerror(error);
   }
+  else if($6 <= 0)
+  {
+    string error = "Array size must be >= 0";
+    yyerror(error);
+  }
   Sym sym;
   sym.name = $1;
   sym.size = $6;
@@ -183,7 +188,7 @@ Stmt: Var ASSIGN Expr{
 
     if(sym_table[$3].type == INTARR)
        temps.pop();
- 
+
     string index = temps.top();
     code << "[]= " << $1 << ", " << index << ", " << source << endl;
   }
@@ -496,12 +501,15 @@ Var: IDENT {
   {
     yyerror("Cannot access scalar variable as array.");
   }
-  sym_table[$1].type = INTARR;
-  $$ = const_cast<char*>($1);
-  string index = temps.top();
-  string tname = add_temp();
-  code << "=[] " << tname << ", " << $1 << ", " << index << endl;
-  //temps.push($1);
+  else
+  {
+    sym_table[$1].type = INTARR;
+    $$ = const_cast<char*>($1);
+    string index = temps.top();
+    string tname = add_temp();
+    code << "=[] " << tname << ", " << $1 << ", " << index << endl;
+    //temps.push($1);
+  }
 }
 
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}
