@@ -497,12 +497,14 @@ Var: IDENT {
   {
     yyerror("Cannot access scalar variable as array.");
   }
-  sym_table[$1].type = INTARR;
-  $$ = const_cast<char*>($1);
-  string index = temps.top();
+  else
+  {
+    sym_table[$1].type = INTARR;
+    $$ = const_cast<char*>($1);
+    string index = temps.top();
 
-  //string tname = add_temp();
-  //code << "=[] " << tname << ", " << $1 << ", " << index << endl;
+    //string tname = add_temp();
+    //code << "=[] " << tname << ", " << $1 << ", " << index << endl;
 }
 
 Cond_tail: ELSE Stmt SEMICOLON Stmt_prime ENDIF {}

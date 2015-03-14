@@ -11,9 +11,11 @@
 program nested_ifs;
 
 n : integer;
+a : array[10] of integer;
 
 beginprogram	## main program
     ## compute the square root of n and put the result in sqrt_n
+    n := n[2];
     if true then
         if true then
             n := 2;
