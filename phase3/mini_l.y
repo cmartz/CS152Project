@@ -145,11 +145,14 @@ Dec: IDENT Ident_seq COLON ARRAY L_BRACKET NUMBER R_BRACKET OF INTEGER {
     string error = "Array size cannot be <= 0";
     yyerror(error);
   }
-  Sym sym;
-  sym.name = $1;
-  sym.size = $6;
-  sym.type = INTARR;
-  add_sym(sym);
+  else
+  {
+    Sym sym;
+    sym.name = $1;
+    sym.size = $6;
+    sym.type = INTARR;
+    add_sym(sym);
+  }
 }
       | IDENT Ident_seq COLON INTEGER {
   if($1 == program_name)
@@ -502,9 +505,9 @@ Var: IDENT {
     sym_table[$1].type = INTARR;
     $$ = const_cast<char*>($1);
     string index = temps.top();
-
-    //string tname = add_temp();
-    //code << "=[] " << tname << ", " << $1 << ", " << index << endl;
+    string tname = add_temp();
+    code << "=[] " << tname << ", " << $1 << ", " << index << endl;
+    //temps.push($1);
   }
 }
 
